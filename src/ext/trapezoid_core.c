@@ -39,3 +39,28 @@ static double norm_cdf(double x) {
 
     return cdf;
 }
+
+
+/*
+* Black-Scholes option price function
+*/
+static double bs_price(
+    double S,
+    double K,
+    double r,
+    double T,
+    double sigma,
+    int flag
+) {
+    double sqrtT = sqrt(T);
+    double d1 = (log (S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
+    double d2 = d1 - sigma * sqrtT;
+    double disc = exp(-r * T);
+
+    if (flag == OPT_CALL) {
+        return S * norm_cdf(d1) - K * disc * norm_cdf(d2);
+    }
+    else {
+        return K * disc * norm_cdf(-d2) - S * norm_cdf(-d1);
+    }
+ }
