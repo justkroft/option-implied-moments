@@ -125,3 +125,55 @@ static int cmp_strike_asc(const void *a, const void *b) {
     double kb = ((const OptionRec *)b)->strike;
     return (ka > kb) - (ka < kb);
 }
+
+
+/* ----
+* Helper function to compute the trapezoidal sum for either calls or puts
+* ---- */
+static void trapz_leg(
+    const OptionRec *recs,
+    size_t n_leg,
+    double spot,
+    double (*kV)(double, double),
+    double (*kW)(double, double),
+    double (*kX)(double, double),
+    double *out_V,
+    double *out_W,
+    double *out_X
+)
+{
+    double V = 0.0, W = 0.0, X = 0.0;
+
+    for (size_t j = 0; j < n_leg; ++j) {
+        double K = recs[j].strike;
+        double p = recs[j].option_price;
+        double kv = kV(spot, K);
+        double kw = kW(spot, K);
+        double kx = kX(spot, K);
+        double dK;
+
+        if (j == 0) {
+            /* Left endpoint */
+            dK = fabs(K - spot);
+            V += kv * p * dK;
+            W += kw * p * dK;
+            X += kx * p * dK;
+        }
+        else {
+            /* Interior / right points */
+            double Kp = recs[j-1].strike;
+            double pp = recs[j-1].option_price;
+            double kvp = kV(spot, Kp);
+            double kwp = kW(spot, Kp);
+            double kxp = kX(spot, Kp);
+            dK = fabs(K - Kp);
+            V += 0.5 * (kv * p + kvp * pp) * dK;
+            W += 0.5 * (kw * p + kwp * pp) * dK;
+            X += 0.5 * (kx * p + kxp * pp) * dK;
+        }
+    }
+
+    *out_V = V;
+    *out_W = W;
+    *out_X = X;
+}
