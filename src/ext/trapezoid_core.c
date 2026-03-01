@@ -4,9 +4,9 @@
 
 #include "trapezoid_core.h"
 
-/*
+/* ----
 * normal cdf approximation
-*/
+* ---- */
 static double norm_cdf(double x) {
     static const double p  =  0.2316419;
     static const double b1 =  0.319381530;
@@ -41,9 +41,9 @@ static double norm_cdf(double x) {
 }
 
 
-/*
+/* ----
 * Black-Scholes option price function
-*/
+* ---- */
 static double bs_price(
     double S,
     double K,
@@ -64,3 +64,47 @@ static double bs_price(
         return K * disc * norm_cdf(-d2) - S * norm_cdf(-d1);
     }
  }
+
+
+/* ----
+* BKM payoff-kernels
+* ---- */
+static inline double vc(double S, double K) {
+    return (2.0 * (1.0 - log(K / S))) / (K * K);
+}
+
+static inline double vp(double S, double K) {
+    return (2.0 * (1.0 + log(S / K))) / (K * K);
+}
+
+static inline double wc(double S, double K) {
+    double lk = log(K / S);
+    return (6.0 * lk - 3.0 * lk * lk) / (K * K);
+}
+
+static inline double wp(double S, double K) {
+    double lk = log(S / K);
+    return (6.0 * lk + 3.0 * lk * lk) / (K * K);
+}
+
+static inline double xc(double S, double K) {
+    double lk = log(K / S);
+    return (12.0 * lk * lk - 4.0 * lk * lk * lk) / (K * K);
+}
+
+static inline double xp(double S, double K) {
+    double lk = log(S / K);
+    return (12.0 * lk * lk + 4.0 * lk * lk * lk) / (K * K);
+}
+
+
+/* ----
+* mu(t, tau)
+* ---- */
+static double bkm_mu(double r, double T, double V, double W, double X) {
+    double exprt = exp(r * T);
+    return exprt - 1.0
+           - (exprt / 2.0) * V
+           - (exprt / 6.0) * W
+           - (exprt / 24.0) * X;
+}
