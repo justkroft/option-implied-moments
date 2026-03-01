@@ -177,3 +177,123 @@ static void trapz_leg(
     *out_W = W;
     *out_X = X;
 }
+
+
+/* ----
+* Main public function to compute risk-neutral moments from option prices
+* ---- */
+int trapz_moments(
+    size_t n,
+    const double *strikes,
+    const double *ivols,
+    const int *flags,
+    double spot,
+    double r,
+    double T,
+    TrapezoidResult *out
+)
+{
+    /* Default output to NaN */
+    out->var = out->skew = out->kurt = (double)NAN;
+
+    if (n < 4) {
+        return TRAPZ_ERR_FEW_OPT;
+    }
+
+    /* Count calls and puts */
+    size_t n_calls = 0, n_puts= 0;
+    for (size_t i = 0; i< n; ++i) {
+        if (flags[i] == OPT_CALL){
+            n_calls++;
+        }
+        else {
+            n_puts++;
+        }
+    }
+
+    if (n_calls == 0) {
+        return TRAPZ_ERR_NO_CALLS;
+    }
+    if (n_puts == 0) {
+        return TRAPZ_ERR_NO_PUTS;
+    }
+
+    /* Allocate arrays */
+    OptionRec *calls = (OptionRec *)malloc(n_calls * sizeof(OptionRec));
+    OptionRec *puts = (OptionRec *)malloc(n_puts * sizeof(OptionRec));
+
+    if (!calls || !puts) {
+        free(calls);
+        free(puts);
+        return TRAPZ_ERR_ALLOC;
+    }
+
+    /* Split into call-put buffers */
+    size_t ic = 0, ip = 0;
+    for (size_t i =0; i < n; ++i) {
+        if (flags[i] == OPT_CALL) {
+            calls[ic].strike = strikes[i];
+            calls[ic].ivol = ivols[i];
+            ++ic;
+        }
+        else {
+            puts[ip].strike = strikes[i];
+            puts[ip].ivol = ivols[i];
+            ++ip;
+        }
+    }
+
+    /* Sort ascending by strikes */
+    qsort(calls, n_calls, sizeof(OptionRec), cmp_strike_asc);
+    qsort(puts, n_puts, sizeof(OptionRec), cmp_strike_asc);
+
+    /* Calc option price */
+    for (size_t j = 0; j < n_calls; ++j) {
+        calls[j].option_price = bs_price(
+            spot,
+            calls[j].strike,
+            r,
+            T,
+            calls[j].ivol,
+            OPT_CALL
+        );
+    }
+    for (size_t j = 0; j < n_puts; ++j) {
+        puts[j].option_price = bs_price(
+            spot,
+            puts[j].strike,
+            r,
+            T,
+            puts[j].ivol,
+            OPT_PUT
+        );
+    }
+
+    /* Trapezoidal integration for calls and puts + contract payoffs */
+    double Vc, Wc, Xc;
+    double Vp, Wp, Xp;
+
+    trapz_leg(calls, n_calls, spot, vc, wc, xc, &Vc, &Wc, &Xc);
+    trapz_leg(puts,  n_puts,  spot, vp, wp, xp, &Vp, &Wp, &Xp);
+
+    double V = Vc + Vp;
+    double W = Wc + Wp;
+    double X = Xc + Xp;
+
+    /* compute moments */
+    double exprt = exp(r * T);
+    double muu = bkm_mu(r, T, V, W, X);
+    double ev_mu2 = exprt * V - muu * muu;
+
+    out->var = ev_mu2;
+    out->skew = (exprt * W - 3.0 * muu * exprt * V + 2.0 * muu * muu * muu) / pow(ev_mu2, 1.5);
+    out->kurt = (exprt * X
+                - 4.0 * muu * exprt * W
+                + 6.0 * exprt * muu * muu * V
+                - 3.0 * muu * muu * muu * muu)
+                / (ev_mu2 * ev_mu2);
+
+    free(calls);
+    free(puts);
+    return TRAPZ_OK;
+}
