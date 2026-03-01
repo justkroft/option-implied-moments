@@ -108,3 +108,20 @@ static double bkm_mu(double r, double T, double V, double W, double X) {
            - (exprt / 6.0) * W
            - (exprt / 24.0) * X;
 }
+
+
+/* ----
+* Sort a struct of (strike, implied vol) pairs so that calls and puts are independently
+* sorted in ascending strike order. This is required for the trapezoidal integration to work correctly.
+* ---- */
+typedef struct {
+    double strike;
+    double ivol;
+    double option_price;
+} OptionRec;
+
+static int cmp_strike_asc(const void *a, const void *b) {
+    double ka = ((const OptionRec *)a)->strike;
+    double kb = ((const OptionRec *)b)->strike;
+    return (ka > kb) - (ka < kb);
+}
