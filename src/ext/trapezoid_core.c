@@ -51,7 +51,8 @@ static double bs_price(
     double T,
     double sigma,
     int flag
-) {
+)
+{
     double sqrtT = sqrt(T);
     double d1 = (log (S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
     double d2 = d1 - sigma * sqrtT;
