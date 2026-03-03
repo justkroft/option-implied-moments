@@ -87,17 +87,6 @@ def compute_trapz_rnm(
         intp_t n_groups = indptr.shape[0] - 1
         intp_t g, start, end, seg_len
 
-        # contiguous typed memory views
-        # TODO: check if this is necessary, or if we can just use the input
-        # arrays directly
-        # float64_t[::1] mv_strikes = np.ascontiguousarray(strikes)
-        # float64_t[::1] mv_ivols   = np.ascontiguousarray(ivols)
-        # int32_t[::1] mv_flags     = np.ascontiguousarray(flags)
-        # float64_t[::1] mv_spots    = np.ascontiguousarray(spots)
-        # float64_t[::1] mv_rf       = np.ascontiguousarray(rf)
-        # float64_t[::1] mv_ttm      = np.ascontiguousarray(ttm)
-        # int64_t[::1] mv_indptr    = np.ascontiguousarray(indptr)
-
         # pre-allocate output arrays
         float64_t[::1] out_var = np.empty(n_groups, dtype=np.float64)
         float64_t[::1] out_skew = np.empty(n_groups, dtype=np.float64)
