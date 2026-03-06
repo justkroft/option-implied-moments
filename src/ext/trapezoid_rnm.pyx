@@ -26,14 +26,14 @@ cdef extern from "trapezoid_core.h" nogil:
         double kurt
 
     int trapz_moments(
-        size_t        n,
+        size_t n,
         const double *strikes,
         const double *ivols,
-        const int    *flags,
-        double        spot,
-        double        r,
-        double        T,
-        RNMResult    *out
+        const int *flags,
+        double spot,
+        double r,
+        double T,
+        TrapezoidResult *out
     )
 
 
@@ -86,6 +86,15 @@ def compute_trapz_rnm(
     cdef:
         intp_t n_groups = indptr.shape[0] - 1
         intp_t g, start, end, seg_len
+
+        # Contiguous typed memoryviews — zero-copy access inside nogil
+        double[::1] mv_strikes = np.ascontiguousarray(strikes)
+        double[::1] mv_ivols   = np.ascontiguousarray(ivols)
+        int[::1]    mv_flags   = np.ascontiguousarray(flags)
+        double[::1] mv_spots   = np.ascontiguousarray(spots)
+        double[::1] mv_rf      = np.ascontiguousarray(rf)
+        double[::1] mv_ttm     = np.ascontiguousarray(ttm)
+        long[::1]   mv_indptr  = np.ascontiguousarray(indptr)
 
         # pre-allocate output arrays
         float64_t[::1] out_var = np.empty(n_groups, dtype=np.float64)
