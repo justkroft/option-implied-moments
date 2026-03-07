@@ -76,9 +76,11 @@ def risk_neutral_moments(
     Parameters
     ----------
     options_data : pl.DataFrame
-        Must contain the columns defined in the `data_schema` parameter..
-        Expected to hold OTM call and put options only (the caller is
-        responsible for pre-filtering).
+        Polars DataFrame containing the option data. Expected to have
+        information on the stock identifier, date, option type (call/put), spot
+        price, strike price, time to maturity, implied volatility, and
+        risk-free rate.
+        Must contain the columns defined in the `data_schema` parameter.
     group_freq : str
         Polars duration string used for the time grouper, e.g. ``"1mo"``
         (monthly, default) or ``"1d"`` (daily).
