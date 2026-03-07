@@ -53,7 +53,6 @@ def risk_neutral_moments(
             (pl.col("time_to_maturity") / 252.0).first().alias("_T"),
             pl.len().alias("_n_opts"),
         ])
-        .sort(["stock_identifier", "_period"])
     )
 
     n_groups: int = len(groups)
