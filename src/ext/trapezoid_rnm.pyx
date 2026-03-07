@@ -17,9 +17,6 @@ cdef extern from "trapezoid_core.h" nogil:
     int TRAPZ_ERR_NO_PUTS
     int TRAPZ_ERR_FEW_OPT
 
-    int OPT_CALL
-    int OPT_PUT
-
     ctypedef struct TrapezoidResult:
         double skew
         double var
@@ -35,6 +32,10 @@ cdef extern from "trapezoid_core.h" nogil:
         double T,
         TrapezoidResult *out
     )
+
+# Mirror of OPT_CALL / OPT_PUT in trapezoid_core.h. keep in sync
+OPT_CALL = 1
+OPT_PUT  = 0
 
 
 def compute_trapz_rnm(
