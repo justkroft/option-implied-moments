@@ -155,9 +155,8 @@ def risk_neutral_moments(
     # arrays for the option-level data, concatenated in the same order
     groups = (
         otm
-        .sort([ds.stock_identifier, ds.date])
         .with_columns(pl.col(ds.date).dt.truncate(group_freq).alias("_period"))
-        .sort([ds.stock_identifier, "_period"])  # resort
+        .sort([ds.stock_identifier, "_period"])
         .group_by([ds.stock_identifier, "_period"], maintain_order=True)
         .agg([
             pl.col(ds.spot_price).first().alias("_spot"),
@@ -175,8 +174,8 @@ def risk_neutral_moments(
     np.cumsum(group_sizes, out=indptr[1:])
 
     # We need the flat option arrays ordered consistently with `groups`.
-    # Re-sort otm to match the groups sort order, then extract arrays.
-    # The sort above (stock_id, _period) already gives us this order.
+    # sort otm to match the groups sort order, then extract arrays
+    # The sort above (stock_id, _period) gives this order.
     flat_strikes = otm[ds.strike_price].to_numpy().astype(np.float64)
     flat_ivols = otm[ds.implied_volatility].to_numpy().astype(np.float64)
     flat_flags = otm["_flag_int"].to_numpy().astype(np.int32)
