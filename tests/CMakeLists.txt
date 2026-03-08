@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.22)
-
 include(CTest)
 
 # Tests
@@ -24,16 +23,28 @@ function(add_c_test_executable test_file)
         set(ctest_name "${bare_stem}")
     endif()
 
+    # --- derive path to the source under test
+    # tests/ext/test_file.c  ->  src/ext/file.c
+    if(rel_dir)
+        set(src_file "${CMAKE_SOURCE_DIR}/src/${rel_dir}/${bare_stem}.c")
+    else()
+        set(src_file "${CMAKE_SOURCE_DIR}/src/${bare_stem}.c")
+    endif()
+
     # --- build the executable
-    add_executable("${target_name}" "${test_file}")
+    if(EXISTS "${src_file}")
+        add_executable("${target_name}" "${test_file}" "${src_file}")
+    else()
+        add_executable("${target_name}" "${test_file}")
+    endif()
 
     target_include_directories("${target_name}" PRIVATE
-        "${CMAKE_SOURCE_DIR}/src"          # trapezoid_core.h
+        "${CMAKE_SOURCE_DIR}/src"          # file.h
         "${CMAKE_CURRENT_SOURCE_DIR}"      # test.h
     )
 
     target_compile_options("${target_name}" PRIVATE
-        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O2 -ffast-math -w>
+        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O2 -w>
         $<$<C_COMPILER_ID:MSVC>:/O2 /w>
     )
 
@@ -63,7 +74,7 @@ endfunction()
 # Auto-discover all C test files under tests/
 #
 # GLOB_RECURSE finds e.g.:
-#   tests/ext/test_trapezoid_core.c
+#   tests/ext/test_file.c
 #   tests/ext/test_other_module.c
 #   tests/test_top_level.c
 # ---------------------------------------------------------------------------
