@@ -178,3 +178,9 @@ add_cython_extension(
     "src/ext/trapezoid_rnm.pyx"
     "src/ext/trapezoid_core.c"
 )
+
+option(TESTING "Build tests for C extensions" ON)
+if (TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
