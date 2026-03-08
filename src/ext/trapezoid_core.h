@@ -30,7 +30,7 @@ typedef struct {
 /* ----
 * Black-Scholes option pricing function
 * ----- */
-double ndtr(double x);
+double norm_cdf(double x);
 
 double bs_price(
     double S,
