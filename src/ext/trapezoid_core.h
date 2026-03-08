@@ -28,6 +28,21 @@ typedef struct {
 
 
 /* ----
+* Black-Scholes option pricing function
+* ----- */
+double ndtr(double x);
+
+double bs_price(
+    double S,
+    double K,
+    double r,
+    double T,
+    double sigma,
+    int flag
+);
+
+
+/* ----
 *
 * Compute risk-neutral variance, skewness, and kurtosis from option prices using the BKM
 * trapezoidal method for a single stock-month group.

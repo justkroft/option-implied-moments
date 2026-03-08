@@ -7,7 +7,7 @@
 /* ----
 * normal cdf approximation
 * ---- */
-static double norm_cdf(double x) {
+double norm_cdf(double x) {
     static const double p  =  0.2316419;
     static const double b1 =  0.319381530;
     static const double b2 = -0.356563782;
@@ -44,7 +44,7 @@ static double norm_cdf(double x) {
 /* ----
 * Black-Scholes option price function
 * ---- */
-static double bs_price(
+double bs_price(
     double S,
     double K,
     double r,
