@@ -23,8 +23,26 @@ set(CYTHON_FLAGS
 )
 
 # ---------------------------------------------------------------------------
-# OpenMP  (optional — prange degrades to a serial loop if absent)
+# OpenMP
 # ---------------------------------------------------------------------------
+if(APPLE)
+    find_program(BREW brew)
+    if(BREW)
+        execute_process(
+            COMMAND ${BREW} --prefix libomp
+            OUTPUT_VARIABLE LIBOMP_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(EXISTS "${LIBOMP_PREFIX}")
+            set(OpenMP_C_FLAGS "-Xclang -fopenmp")
+            set(OpenMP_C_LIB_NAMES "omp")
+            set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
+            include_directories("${LIBOMP_PREFIX}/include")
+            message(STATUS "macOS: found libomp at ${LIBOMP_PREFIX}")
+        endif()
+    endif()
+endif()
+
 find_package(OpenMP)
 
 if(OpenMP_C_FOUND)
