@@ -33,14 +33,16 @@ function(add_c_test_executable test_file)
 
     # --- build the executable
     if(EXISTS "${src_file}")
+        get_filename_component(src_dir "${src_file}" DIRECTORY)
         add_executable("${target_name}" "${test_file}" "${src_file}")
     else()
+        set(src_dir "")
         add_executable("${target_name}" "${test_file}")
     endif()
 
     target_include_directories("${target_name}" PRIVATE
-        "${CMAKE_SOURCE_DIR}/src"          # file.h
-        "${CMAKE_CURRENT_SOURCE_DIR}"      # test.h
+        "${CMAKE_CURRENT_SOURCE_DIR}"   # test.h
+        $<$<BOOL:${src_dir}>:${src_dir}>  # header next to the .c file, if it exists
     )
 
     target_compile_options("${target_name}" PRIVATE
