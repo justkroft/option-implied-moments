@@ -1,3 +1,6 @@
+BUILD_DIR      := build
+BUILD_DIR_TEST := build_test
+
 .PHONY: install
 install:
 	@echo "Creating virtual environment and installing dependencies using uv..."
@@ -11,7 +14,8 @@ build:
 	@echo "Installing build dependencies..."
 	uv pip install scikit-build-core numpy
 	@echo "Compiling C-extensions..."
-	uv pip install --no-build-isolation -e .
+	uv pip install --no-build-isolation -e . -Cbuild-dir=$(BUILD_DIR) -Ccmake.build-type=Release
+	@echo "Build complete. Compiled extensions are in $(BUILD_DIR)/"
 
 .PHONY: clean
 clean:
@@ -25,10 +29,26 @@ clean:
 .PHONY: rebuild
 rebuild: clean install build
 
-.PHONY: test
-test:
-	@echo "Running tests with pytest..."
+.PHONY: build-tests
+build-tests:
+	# We don't need OpenMP for unit tests and hence disable it here
+	@echo "Configuring test build..."
+	cmake -S . -B $(BUILD_DIR_TEST) -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON
+	@echo "Compiling C unit tests..."
+	cmake --build $(BUILD_DIR_TEST)
+
+.PHONY: test-c
+test-c: build-tests
+	@echo "Running C unit tests..."
+	ctest --rerun-failed --output-on-failure --test-dir $(BUILD_DIR_TEST) -R "^ext/"
+
+.PHONY: test-python
+test-python:
+	@echo "Running Python unit tests..."
 	uv run pytest tests/ -v
+
+.PHONY: test
+test-all: test-c test-python
 
 .PHONY: lint
 lint:
