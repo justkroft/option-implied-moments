@@ -23,6 +23,9 @@ function(add_c_test_executable test_file)
         set(ctest_name "${bare_stem}")
     endif()
 
+    # --- Add test.c to every test executable
+    set(TEST_HARNESS "${CMAKE_CURRENT_SOURCE_DIR}/test.c")
+
     # --- derive path to the source under test
     # tests/ext/test_file.c  ->  src/ext/file.c
     if(rel_dir)
@@ -34,10 +37,10 @@ function(add_c_test_executable test_file)
     # --- build the executable
     if(EXISTS "${src_file}")
         get_filename_component(src_dir "${src_file}" DIRECTORY)
-        add_executable("${target_name}" "${test_file}" "${src_file}")
+        add_executable("${target_name}" "${test_file}" "${src_file}" "${TEST_HARNESS}")
     else()
         set(src_dir "")
-        add_executable("${target_name}" "${test_file}")
+        add_executable("${target_name}" "${test_file}" "${TEST_HARNESS}")
     endif()
 
     target_include_directories("${target_name}" PRIVATE
