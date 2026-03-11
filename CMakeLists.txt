@@ -33,12 +33,20 @@ if(APPLE)
             OUTPUT_VARIABLE LIBOMP_PREFIX
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-        if(EXISTS "${LIBOMP_PREFIX}")
-            set(OpenMP_C_FLAGS "-Xclang -fopenmp")
+        execute_process(
+            COMMAND ${BREW} --prefix llvm
+            OUTPUT_VARIABLE LLVM_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(EXISTS "${LIBOMP_PREFIX}" AND EXISTS "${LLVM_PREFIX}")
+            set(CMAKE_C_COMPILER   "${LLVM_PREFIX}/bin/clang")
+            set(CMAKE_CXX_COMPILER "${LLVM_PREFIX}/bin/clang++")
+            set(OpenMP_C_FLAGS     "-fopenmp")
             set(OpenMP_C_LIB_NAMES "omp")
             set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
             include_directories("${LIBOMP_PREFIX}/include")
-            message(STATUS "macOS: found libomp at ${LIBOMP_PREFIX}")
+            link_directories("${LIBOMP_PREFIX}/lib")
+            message(STATUS "macOS: using Homebrew LLVM clang with libomp")
         endif()
     endif()
 endif()

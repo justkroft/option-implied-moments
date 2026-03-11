@@ -1,4 +1,3 @@
-BUILD_DIR      := build
 BUILD_DIR_TEST := build_test
 
 .PHONY: install
@@ -14,8 +13,8 @@ build:
 	@echo "Installing build dependencies..."
 	uv pip install scikit-build-core numpy
 	@echo "Compiling C-extensions..."
-	uv pip install --no-build-isolation -e . -Cbuild-dir=$(BUILD_DIR) -Ccmake.build-type=Release
-	@echo "Build complete. Compiled extensions are in $(BUILD_DIR)/"
+	uv pip install --no-build-isolation -e . -Ccmake.build-type=Release
+	@echo "Build complete."
 
 .PHONY: clean
 clean:
@@ -42,13 +41,13 @@ test-c: build-tests
 	@echo "Running C unit tests..."
 	ctest --rerun-failed --output-on-failure --test-dir $(BUILD_DIR_TEST) -R "^ext/"
 
-.PHONY: test-python
-test-python:
+.PHONY: test-py
+test-py:
 	@echo "Running Python unit tests..."
 	uv run pytest tests/ -v
 
 .PHONY: test
-test-all: test-c test-python
+test: test-c test-python
 
 .PHONY: lint
 lint:
