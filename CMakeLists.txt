@@ -155,13 +155,10 @@ function(add_cython_extension module_name pyx_path extra_c_sources)
     #   -fno-math-errno   : skip errno updates in libm (safe for our use)
     #   /fp:fast          : MSVC equivalent
     #
-    # Note: -ffast-math implies -ffinite-math-only which removes NaN
-    # checks.  Our NaN propagation relies on IEEE bit patterns, not on
-    # floating-point comparisons, so this is safe here.
     # ------------------------------------------------------------------
     target_compile_options(${target_name} PRIVATE
-        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O3 -ffast-math -fno-math-errno>
-        $<$<C_COMPILER_ID:MSVC>:/O2 /fp:fast>
+        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O3 -fno-math-errno -fno-trapping-math -fno-finite-math-only>
+        $<$<C_COMPILER_ID:MSVC>:/O2 /fp:precise>
     )
 
     # ------------------------------------------------------------------
