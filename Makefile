@@ -50,7 +50,7 @@ test-py:
 	uv run pytest tests/ -v
 
 .PHONY: test
-test: test-c test-python
+test: test-c test-py
 
 .PHONY: lint
 lint:
