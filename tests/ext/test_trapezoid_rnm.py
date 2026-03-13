@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -51,9 +53,8 @@ def single_group_input(
 # Successful execution of Cython function
 def _wide_grid_inputs(spot: float, ivol: float, ttm: float, n: int = 40) -> dict:  # noqa: E501
     """
-    Build inputs with a strike grid that scales with implied volatility and TTM
+    Inputs with a strike grid that scales with implied volatility and TTM
     so the integration domain covers the tails regardless of the parameters.
-    Uses +/-4 standard deviations in log-moneyness as the grid boundary.
     """
     std = ivol * np.sqrt(ttm)
     log_bounds = 4.0 * std
@@ -192,3 +193,58 @@ class TestComputeTrapzRnm:
                 f"Variance not increasing: ivol={ivols[i]:.2f} -> var={vars_[i]:.6f}, "  # noqa: E501
                 f"ivol={ivols[i+1]:.2f} -> var={vars_[i+1]:.6f}"
             )
+
+
+# Test errors
+class TestComputeTrapzRnmErrors:
+
+    def test_fewer_than_4_options_returns_nan(self):
+        inp = single_group_input(n_calls=1, n_puts=2)
+        skew, var, kurt = compute_trapz_rnm(**inp)
+        assert math.isnan(skew[0])
+        assert math.isnan(var[0])
+        assert math.isnan(kurt[0])
+
+    def test_no_calls_returns_nan(self):
+        inp = single_group_input(n_calls=0, n_puts=8)
+        skew, var, kurt = compute_trapz_rnm(**inp)
+        assert math.isnan(skew[0])
+        assert math.isnan(var[0])
+        assert math.isnan(kurt[0])
+
+    def test_no_puts_returns_nan(self):
+        inp = single_group_input(n_calls=8, n_puts=0)
+        skew, var, kurt = compute_trapz_rnm(**inp)
+        assert math.isnan(skew[0])
+        assert math.isnan(var[0])
+        assert math.isnan(kurt[0])
+
+    def test_exactly_4_options_does_not_nan(self):
+        inp = single_group_input(n_calls=2, n_puts=2)
+        skew, var, kurt = compute_trapz_rnm(**inp)
+        assert not math.isnan(var[0])
+
+    def test_mixed_valid_invalid_groups(self):
+        """
+        In a batch of two groups, a small group (< 4 opts) must produce NaN
+        without poisoning the neighbouring valid group.
+        """
+        valid = single_group_input(n_calls=8, n_puts=8)
+        invalid = single_group_input(n_calls=1, n_puts=1)
+
+        n_v = len(valid["strikes"])
+        n_i = len(invalid["strikes"])
+
+        batch = dict(
+            strikes=np.concatenate([valid["strikes"], invalid["strikes"]]),
+            ivols=np.concatenate([valid["ivols"],   invalid["ivols"]]),
+            flags=np.concatenate([valid["flags"],   invalid["flags"]]),
+            spots=np.array([100.0, 100.0]),
+            rf=np.array([0.02, 0.02]),
+            ttm=np.array([0.25, 0.25]),
+            indptr=_make_indptr([n_v, n_i]),
+        )
+        skew, var, kurt = compute_trapz_rnm(**batch)
+
+        assert not math.isnan(var[0]),  "valid group should not be NaN"
+        assert math.isnan(var[1]), "invalid group should be NaN"
