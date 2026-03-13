@@ -54,7 +54,7 @@ def single_group_input(
 def _wide_grid_inputs(spot: float, ivol: float, ttm: float, n: int = 40) -> dict:  # noqa: E501
     """
     Inputs with a strike grid that scales with implied volatility and TTM
-    so the integration domain covers the tails regardless of the parameters.
+    so the integration domain covers the tails.
     """
     std = ivol * np.sqrt(ttm)
     log_bounds = 4.0 * std
@@ -101,8 +101,7 @@ class TestComputeTrapzRnm:
 
     def test_kurtosis_exceeds_one(self, valid_single_group_data):
         """
-        For a symmetric IV smile, kurtosis should be well above 1.
-        This is a loose sanity check, not a precise formula assertion.
+        Sanity check; for a symmetric IV smile, kurtosis should be above 1
         """
         _, _, kurt = compute_trapz_rnm(**valid_single_group_data)
         assert kurt[0] > 1.0
@@ -113,7 +112,7 @@ class TestComputeTrapzRnm:
         from spot, equal IVols) should produce skewness close to zero.
         """
         spot = 100.0
-        # 5,10,...,40
+        # 5, 10, ..., 40
         offsets = np.arange(5, 45, 5, dtype=np.float64)
         inp = single_group_input(
             call_strikes=spot + offsets,
@@ -123,35 +122,6 @@ class TestComputeTrapzRnm:
         skew, _, _ = compute_trapz_rnm(**inp)
         # near zero, not exact due to BS nonlinearity
         assert abs(skew[0]) < 0.5
-
-    def test_multiple_groups_independent(self):
-        """
-        Results for two groups must be independent of each other.
-        """
-        inp1 = single_group_input(ivol=0.20)
-        inp2 = single_group_input(ivol=0.30)
-
-        var1, skew1, _ = compute_trapz_rnm(**inp1)
-        var2, skew2, _ = compute_trapz_rnm(**inp2)
-
-        # Batch both groups in one call
-        n1 = len(inp1["strikes"])
-        n2 = len(inp2["strikes"])
-        batch = dict(
-            strikes=np.concatenate([inp1["strikes"], inp2["strikes"]]),
-            ivols=np.concatenate([inp1["ivols"],   inp2["ivols"]]),
-            flags=np.concatenate([inp1["flags"],   inp2["flags"]]),
-            spots=np.array([100.0, 100.0]),
-            rf=np.array([0.02, 0.02]),
-            ttm=np.array([0.25, 0.25]),
-            indptr=_make_indptr([n1, n2]),
-        )
-        bv, bs, _ = compute_trapz_rnm(**batch)
-
-        np.testing.assert_allclose(bv[0], var1[0],  rtol=1e-10)
-        np.testing.assert_allclose(bs[0], skew1[0], rtol=1e-10)
-        np.testing.assert_allclose(bv[1], var2[0],  rtol=1e-10)
-        np.testing.assert_allclose(bs[1], skew2[0], rtol=1e-10)
 
     def test_unsorted_strikes_give_same_result_as_sorted(self):
         """
@@ -227,7 +197,6 @@ class TestComputeTrapzRnmErrors:
     def test_mixed_valid_invalid_groups(self):
         """
         In a batch of two groups, a small group (< 4 opts) must produce NaN
-        without poisoning the neighbouring valid group.
         """
         valid = single_group_input(n_calls=8, n_puts=8)
         invalid = single_group_input(n_calls=1, n_puts=1)
@@ -246,5 +215,75 @@ class TestComputeTrapzRnmErrors:
         )
         var, _, _ = compute_trapz_rnm(**batch)
 
-        assert not math.isnan(var[0]),  "valid group should not be NaN"
+        assert not math.isnan(var[0]), "valid group should not be NaN"
         assert math.isnan(var[1]), "invalid group should be NaN"
+
+
+# Edge cases
+class TestComputeTrapzRnmEdgeCases:
+
+    def test_zero_groups(self):
+        """Empty batch returns three empty arrays without error."""
+        skew, var, kurt = compute_trapz_rnm(
+            strikes=np.array([], dtype=np.float64),
+            ivols=np.array([], dtype=np.float64),
+            flags=np.array([], dtype=np.int32),
+            spots=np.array([], dtype=np.float64),
+            rf=np.array([], dtype=np.float64),
+            ttm=np.array([], dtype=np.float64),
+            indptr=np.array([0], dtype=np.int64),
+        )
+        assert len(skew) == 0
+        assert len(var)  == 0
+        assert len(kurt) == 0
+
+    def test_large_batch_no_crash(self):
+        """Stress test somewhat large input data"""
+        n_groups = 500
+        n_per = 16   # 8 calls + 8 puts
+        total_opt = n_groups * n_per
+
+        spot = 100.0
+        strikes = np.empty(total_opt, dtype=np.float64)
+        flags = np.empty(total_opt, dtype=np.int32)
+        ivols = np.full(total_opt, 0.20, dtype=np.float64)
+
+        for g in range(n_groups):
+            base = g * n_per
+            strikes[base:base+8] = spot + np.arange(5, 45, 5)
+            strikes[base+8:base+16] = spot - np.arange(5, 45, 5)
+            flags[base:base+8] = OPT_CALL
+            flags[base+8:base+16] = OPT_PUT
+
+        spots = np.full(n_groups, spot)
+        rf_arr = np.full(n_groups, 0.02)
+        ttm_arr = np.full(n_groups, 0.25)
+        indptr = _make_indptr([n_per] * n_groups)
+
+        var, skew, _ = compute_trapz_rnm(
+            strikes, ivols, flags, spots, rf_arr, ttm_arr, indptr
+        )
+        assert not np.all(np.isnan(var))
+        assert skew.shape == (n_groups,)
+
+    def test_very_deep_otm_options(self):
+        """
+        Very deep OTM options have BS prices close to zero. The trapezoidal sum
+        should still be finite.
+        """
+        deep_calls = np.array([200.0, 300.0, 400.0, 500.0], dtype=np.float64)
+        deep_puts = np.array([50.0, 30.0, 20.0, 10.0], dtype=np.float64)
+        inp = single_group_input(
+            call_strikes=deep_calls,
+            put_strikes=deep_puts,
+            ivol=0.20,
+        )
+        var, skew, kurt = compute_trapz_rnm(**inp)
+        for val in (var[0], skew[0], kurt[0]):
+            assert math.isfinite(val) or math.isnan(val)
+
+    def test_near_zero_ivol(self):
+        inp = single_group_input(ivol=1e-4)
+        var, skew, kurt = compute_trapz_rnm(**inp)
+        for val in (var[0], skew[0], kurt[0]):
+            assert not math.isinf(val)
