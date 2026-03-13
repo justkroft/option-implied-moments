@@ -19,7 +19,10 @@ build:
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
-	find . -name "*.so" -not -path "./.git/*" -delete
+	rm -rf $(BUILD_DIR_TEST)
+	rm -f  rnd/trapezoid_rnm.c
+	find . -name "*.so"  -delete
+	find . -name "*.pyd" -delete
 	rm -rf _skbuild build dist *.egg-info
 	rm -rf src/*.egg-info
 	rm -rf .pytest_cache
@@ -65,10 +68,12 @@ ci:
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  install  - Set up virtual environment and install all dependencies"
-	@echo "  build    - Compile C extensions (editable install)"
-	@echo "  rebuild  - Clean and recompile everything from scratch"
-	@echo "  clean    - Remove all build artifacts (.so, dist, .venv)"
-	@echo "  test     - Run pytest"
-	@echo "  lint     - Run ruff and cython-lint"
-	@echo "  ci       - Full pipeline: rebuild + test + lint"
+	@echo "  install      - Set up virtual environment and install all dependencies"
+	@echo "  build        - Compile C extensions (editable install)"
+	@echo "  rebuild      - Clean and recompile everything from scratch"
+	@echo "  clean        - Remove all build artifacts (.so, dist, .venv)"
+	@echo "  test-c       - Build and run C unit tests"
+	@echo "  test-python  - Run Python unit tests"
+	@echo "  test         - Run C and Python unit tests"
+	@echo "  lint         - Run ruff and cython-lint"
+	@echo "  ci           - Full pipeline: rebuild + test-all + lint"
