@@ -1,40 +1,37 @@
 cmake_minimum_required(VERSION 3.22)
 include(CTest)
 
-# Tests
 function(add_c_test_executable test_file)
     file(RELATIVE_PATH rel "${CMAKE_CURRENT_SOURCE_DIR}" "${test_file}")
-    get_filename_component(rel_dir  "${rel}" DIRECTORY)   # ext
-    get_filename_component(stem     "${rel}" NAME_WE)     # test_trapezoid_core
+    get_filename_component(rel_dir  "${rel}" DIRECTORY)
+    get_filename_component(stem     "${rel}" NAME_WE)
 
     if(rel_dir)
-        set(target_name "${rel_dir}_${stem}")             # ext_test_trapezoid_core
+        set(target_name "${rel_dir}_${stem}")
     else()
         set(target_name "${stem}")
     endif()
 
-    # --- derive a human-readable CTest name
     # Strip the "test_" prefix from the stem for readability, then
-    # combine with the subdirectory: ext/trapezoid_core
-    string(REGEX REPLACE "^test_" "" bare_stem "${stem}")  # trapezoid_core
+    # combine with the subdirectory
+    string(REGEX REPLACE "^test_" "" bare_stem "${stem}")
     if(rel_dir)
-        set(ctest_name "${rel_dir}/${bare_stem}")          # ext/trapezoid_core
+        set(ctest_name "${rel_dir}/${bare_stem}")
     else()
         set(ctest_name "${bare_stem}")
     endif()
 
-    # --- Add test.c to every test executable
+    # Add test.c to every test executable
     set(TEST_HARNESS "${CMAKE_CURRENT_SOURCE_DIR}/test.c")
 
-    # --- derive path to the source under test
-    # tests/ext/test_file.c  ->  src/ext/file.c
+    # derive path to the source under test
     if(rel_dir)
         set(src_file "${CMAKE_SOURCE_DIR}/src/${rel_dir}/${bare_stem}.c")
     else()
         set(src_file "${CMAKE_SOURCE_DIR}/src/${bare_stem}.c")
     endif()
 
-    # --- build the executable
+    # build executable
     if(EXISTS "${src_file}")
         get_filename_component(src_dir "${src_file}" DIRECTORY)
         add_executable("${target_name}" "${test_file}" "${src_file}" "${TEST_HARNESS}")
@@ -67,7 +64,7 @@ function(add_c_test_executable test_file)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/tests/${rel_dir}"
     )
 
-    # --- register with CTest
+    # register with CTest
     add_test(
         NAME    "${ctest_name}"
         COMMAND "${target_name}"
@@ -75,14 +72,12 @@ function(add_c_test_executable test_file)
 
 endfunction()
 
-# ---------------------------------------------------------------------------
 # Auto-discover all C test files under tests/
 #
 # GLOB_RECURSE finds e.g.:
 #   tests/ext/test_file.c
 #   tests/ext/test_other_module.c
 #   tests/test_top_level.c
-# ---------------------------------------------------------------------------
 file(GLOB_RECURSE c_test_files
     "${CMAKE_CURRENT_SOURCE_DIR}/test_*.c"
 )
@@ -91,9 +86,8 @@ foreach(test_file ${c_test_files})
     add_c_test_executable("${test_file}")
 endforeach()
 
-# ---------------------------------------------------------------------------
-# pytest — registered as a single CTest entry
-# ---------------------------------------------------------------------------
+
+# pytest registered as a single CTest entry
 add_test(
     NAME    python_tests
     COMMAND ${Python_EXECUTABLE} -m pytest "${CMAKE_SOURCE_DIR}/tests/" -v --tb=short
