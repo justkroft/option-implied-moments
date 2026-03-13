@@ -131,8 +131,8 @@ class TestComputeTrapzRnm:
         inp1 = single_group_input(ivol=0.20)
         inp2 = single_group_input(ivol=0.30)
 
-        skew1, var1, _ = compute_trapz_rnm(**inp1)
-        skew2, var2, _ = compute_trapz_rnm(**inp2)
+        var1, skew1, _ = compute_trapz_rnm(**inp1)
+        var2, skew2, _ = compute_trapz_rnm(**inp2)
 
         # Batch both groups in one call
         n1 = len(inp1["strikes"])
@@ -146,12 +146,12 @@ class TestComputeTrapzRnm:
             ttm=np.array([0.25, 0.25]),
             indptr=_make_indptr([n1, n2]),
         )
-        bs, bv, _ = compute_trapz_rnm(**batch)
+        bv, bs, _ = compute_trapz_rnm(**batch)
 
-        np.testing.assert_allclose(bs[0], skew1[0], rtol=1e-10)
         np.testing.assert_allclose(bv[0], var1[0],  rtol=1e-10)
-        np.testing.assert_allclose(bs[1], skew2[0], rtol=1e-10)
+        np.testing.assert_allclose(bs[0], skew1[0], rtol=1e-10)
         np.testing.assert_allclose(bv[1], var2[0],  rtol=1e-10)
+        np.testing.assert_allclose(bs[1], skew2[0], rtol=1e-10)
 
     def test_unsorted_strikes_give_same_result_as_sorted(self):
         """
@@ -200,28 +200,28 @@ class TestComputeTrapzRnmErrors:
 
     def test_fewer_than_4_options_returns_nan(self):
         inp = single_group_input(n_calls=1, n_puts=2)
-        skew, var, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(skew[0])
+        var, skew, kurt = compute_trapz_rnm(**inp)
         assert math.isnan(var[0])
+        assert math.isnan(skew[0])
         assert math.isnan(kurt[0])
 
     def test_no_calls_returns_nan(self):
         inp = single_group_input(n_calls=0, n_puts=8)
-        skew, var, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(skew[0])
+        var, skew, kurt = compute_trapz_rnm(**inp)
         assert math.isnan(var[0])
+        assert math.isnan(skew[0])
         assert math.isnan(kurt[0])
 
     def test_no_puts_returns_nan(self):
         inp = single_group_input(n_calls=8, n_puts=0)
-        skew, var, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(skew[0])
+        var, skew, kurt = compute_trapz_rnm(**inp)
         assert math.isnan(var[0])
+        assert math.isnan(skew[0])
         assert math.isnan(kurt[0])
 
     def test_exactly_4_options_does_not_nan(self):
         inp = single_group_input(n_calls=2, n_puts=2)
-        skew, var, kurt = compute_trapz_rnm(**inp)
+        var, _, _ = compute_trapz_rnm(**inp)
         assert not math.isnan(var[0])
 
     def test_mixed_valid_invalid_groups(self):
@@ -244,7 +244,7 @@ class TestComputeTrapzRnmErrors:
             ttm=np.array([0.25, 0.25]),
             indptr=_make_indptr([n_v, n_i]),
         )
-        skew, var, kurt = compute_trapz_rnm(**batch)
+        var, _, _ = compute_trapz_rnm(**batch)
 
         assert not math.isnan(var[0]),  "valid group should not be NaN"
         assert math.isnan(var[1]), "invalid group should be NaN"
