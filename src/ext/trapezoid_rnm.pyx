@@ -33,7 +33,7 @@ cdef extern from "trapezoid_core.h" nogil:
         TrapezoidResult *out
     )
 
-# Mirror of OPT_CALL / OPT_PUT in trapezoid_core.h. keep in sync
+# Same as OPT_CALL / OPT_PUT in trapezoid_core.h. Mind to keep in sync
 OPT_CALL = 1
 OPT_PUT  = 0
 
@@ -50,11 +50,10 @@ def compute_trapz_rnm(
     """
     Compute risk-neutral moments for all groups in parallel.
 
-    Bridge between the Python API and the C implementation. This function does the
+    Bridge between the Python API and the C helper functions. This function does the
     following:
-    - Accept pre-processed flat NumPy arrays + CSR-style group index pointers
-        from the Python orchestrator.
-    - Iterate over groups with OpenMP prange (one thread per group).
+    - Accept pre-processed flat NumPy arrays + CSR-style group index pointers.
+    - Iterate over groups in parallel with OpenMP prange.
     - Call C-code under nogil for each group.
     - Write scalar results into pre-allocated output arrays; return as NumPy arrays
 
@@ -78,7 +77,7 @@ def compute_trapz_rnm(
 
     Returns
     -------
-    var  : ndarray, shape (G,), float64
+    var : ndarray, shape (G,), float64
     skew : ndarray, shape (G,), float64
     kurt : ndarray, shape (G,), float64
         Risk-neutral moments per group; NaN where computation failed.
@@ -88,16 +87,16 @@ def compute_trapz_rnm(
         intp_t n_groups = indptr.shape[0] - 1
         intp_t g, start, end, seg_len
 
-        # Contiguous typed memoryviews — zero-copy access inside nogil
+        # Convert to contiguous typed memoryviews
         double[::1] mv_strikes = np.ascontiguousarray(strikes)
-        double[::1] mv_ivols   = np.ascontiguousarray(ivols)
-        int[::1]    mv_flags   = np.ascontiguousarray(flags)
-        double[::1] mv_spots   = np.ascontiguousarray(spots)
-        double[::1] mv_rf      = np.ascontiguousarray(rf)
-        double[::1] mv_ttm     = np.ascontiguousarray(ttm)
-        long[::1]   mv_indptr  = np.ascontiguousarray(indptr)
+        double[::1] mv_ivols = np.ascontiguousarray(ivols)
+        int[::1] mv_flags = np.ascontiguousarray(flags)
+        double[::1] mv_spots = np.ascontiguousarray(spots)
+        double[::1] mv_rf = np.ascontiguousarray(rf)
+        double[::1] mv_ttm = np.ascontiguousarray(ttm)
+        long[::1] mv_indptr = np.ascontiguousarray(indptr)
 
-        # pre-allocate output arrays
+        # output arrays
         float64_t[::1] out_var = np.empty(n_groups, dtype=np.float64)
         float64_t[::1] out_skew = np.empty(n_groups, dtype=np.float64)
         float64_t[::1] out_kurt = np.empty(n_groups, dtype=np.float64)
@@ -105,8 +104,6 @@ def compute_trapz_rnm(
         TrapezoidResult result
         int rc
 
-    # prange releases the GIL per-iteration; each iteration is independent
-    # because each group writes only to its own output index.
     for g in prange(n_groups, nogil=True, schedule="dynamic"):
 
         start = mv_indptr[g]
@@ -124,7 +121,7 @@ def compute_trapz_rnm(
             &result
         )
 
-        # trapz_moments() sets NaN on all error paths, so we can
+        # trapz_moments() from c func sets NaN on all error paths, hence we can
         # unconditionally store the results
         out_var[g]  = result.var
         out_skew[g] = result.skew
