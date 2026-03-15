@@ -2,7 +2,6 @@ import math
 
 import numpy as np
 import pytest
-
 from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 
 
