@@ -99,12 +99,12 @@ class TestComputeTrapzRnm:
         var, _, _ = compute_trapz_rnm(**valid_single_group_data)
         assert var[0] > 0.0
 
-    def test_kurtosis_exceeds_one(self, valid_single_group_data):
+    def test_kurtosis_exceeds_three(self, valid_single_group_data):
         """
-        Sanity check; for a symmetric IV smile, kurtosis should be above 1
+        Sanity check; for a symmetric IV smile, kurtosis should be above 3
         """
         _, _, kurt = compute_trapz_rnm(**valid_single_group_data)
-        assert kurt[0] > 1.0
+        assert kurt[0] > 3.0
 
     def test_symmetric_smile_near_zero_skew(self):
         """
@@ -121,7 +121,7 @@ class TestComputeTrapzRnm:
         )
         skew, _, _ = compute_trapz_rnm(**inp)
         # near zero, not exact due to BS nonlinearity
-        assert abs(skew[0]) < 0.5
+        assert abs(skew[0]) < 0.01
 
     def test_unsorted_strikes_give_same_result_as_sorted(self):
         """
