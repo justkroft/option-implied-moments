@@ -4,6 +4,10 @@
 
 #include "trapezoid_core.h"
 
+#ifndef TRAPZ_PI
+#define TRAPZ_PI 3.14159265358979323846
+#endif
+
 /* ----
 * normal cdf approximation
 * ---- */
@@ -28,7 +32,7 @@ double norm_cdf(double x) {
     double t5 = t4 * t;
 
     // standard normal PDF at x
-    double pdf = (1.0 / sqrt(2.0 * M_PI)) * exp(-0.5 * x * x);
+    double pdf = (1.0 / sqrt(2.0 * TRAPZ_PI)) * exp(-0.5 * x * x);
     double poly = b1 * t + b2 * t2 + b3 * t3 + b4 * t4 + b5 * t5;
     double cdf = 1.0 - pdf * poly;
 
