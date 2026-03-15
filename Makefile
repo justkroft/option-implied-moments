@@ -35,9 +35,9 @@ rebuild: clean install build
 build-tests:
 	# We don't need OpenMP for unit tests and hence disable it here
 	@echo "Configuring test build..."
-	cmake -S . -B $(BUILD_DIR_TEST) -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON
+	uv run cmake -S . -B $(BUILD_DIR_TEST) -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON
 	@echo "Compiling C unit tests..."
-	cmake --build $(BUILD_DIR_TEST)
+	uv run cmake --build $(BUILD_DIR_TEST)
 
 .PHONY: test-c
 test-c: build-tests
