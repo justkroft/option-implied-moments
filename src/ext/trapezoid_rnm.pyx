@@ -1,12 +1,9 @@
 from cython.parallel cimport prange
+from libc.stdint cimport int32_t
 
 import numpy as np
+from numpy cimport intp_t
 
-# type declarations
-ctypedef Py_ssize_t intp_t
-ctypedef double float64_t
-ctypedef int int32_t
-ctypedef long int64_t
 
 # C declarations
 cdef extern from "trapezoid_core.h" nogil:
@@ -39,13 +36,13 @@ OPT_PUT  = 0
 
 
 def compute_trapz_rnm(
-    float64_t[::1] strikes,
-    float64_t[::1] ivols,
-    int32_t[::1] flags,
-    float64_t[::1] spots,
-    float64_t[::1] rf,
-    float64_t[::1] ttm,
-    int64_t[::1] indptr,
+    double[::1] strikes,
+    double[::1] ivols,
+    int[::1] flags,
+    double[::1] spots,
+    double[::1] rf,
+    double[::1] ttm,
+    intp_t[::1] indptr,
 ):
     """
     Compute risk-neutral moments for all groups in parallel.
@@ -63,7 +60,7 @@ def compute_trapz_rnm(
         OTM strike prices across all groups.
     ivols : ndarray, shape (N,)
         Corresponding implied volatilities.
-    flags : ndarray, shape (N,), dtype int32
+    flags : ndarray, shape (N,), dtype int
         Option type: OPT_CALL (1) or OPT_PUT (0).
     spots : ndarray, shape (G,)
         Spot price for each group.
@@ -71,7 +68,7 @@ def compute_trapz_rnm(
         Risk-free rate for each group.
     ttm : ndarray, shape (G,)
         Time-to-maturity in years for each group.
-    indptr : ndarray, shape (G+1,), dtype int64
+    indptr : ndarray, shape (G+1,), dtype intp_t
         CSR-style row pointers.  Group i owns the slice
         [indptr[i], indptr[i+1]) of the flat arrays.
 
@@ -94,12 +91,12 @@ def compute_trapz_rnm(
         double[::1] mv_spots = np.ascontiguousarray(spots)
         double[::1] mv_rf = np.ascontiguousarray(rf)
         double[::1] mv_ttm = np.ascontiguousarray(ttm)
-        long[::1] mv_indptr = np.ascontiguousarray(indptr)
+        intp_t[::1] mv_indptr = np.ascontiguousarray(indptr)
 
         # output arrays
-        float64_t[::1] out_var = np.empty(n_groups, dtype=np.float64)
-        float64_t[::1] out_skew = np.empty(n_groups, dtype=np.float64)
-        float64_t[::1] out_kurt = np.empty(n_groups, dtype=np.float64)
+        double[::1] out_var = np.empty(n_groups, dtype=np.float64)
+        double[::1] out_skew = np.empty(n_groups, dtype=np.float64)
+        double[::1] out_kurt = np.empty(n_groups, dtype=np.float64)
 
         TrapezoidResult result
         int rc

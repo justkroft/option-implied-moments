@@ -7,7 +7,7 @@ from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 
 def _make_indptr(sizes: list[int]) -> np.ndarray:
     """Build a CSR indptr array from a list of group sizes."""
-    indptr = np.zeros(len(sizes) + 1, dtype=np.int64)
+    indptr = np.zeros(len(sizes) + 1, dtype=np.intp)
     np.cumsum(sizes, out=indptr[1:])
     return indptr
 
@@ -34,7 +34,7 @@ def single_group_input(
     strikes = np.concatenate([call_strikes, put_strikes])
     flags = np.array(
         [OPT_CALL] * len(call_strikes) + [OPT_PUT] * len(put_strikes),
-        dtype=np.int32,
+        dtype=np.intc,
     )
     ivols = np.full(len(strikes), ivol, dtype=np.float64)
 

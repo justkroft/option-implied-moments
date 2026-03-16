@@ -1,5 +1,13 @@
 BUILD_DIR_TEST := build_test
 
+ifeq ($(OS),Windows_NT)
+    TEST_BUILD_TYPE := RelWithDebInfo
+else
+    TEST_BUILD_TYPE := Debug
+endif
+
+PYTHON_EXECUTABLE := $(shell uv run python -c "import sys; print(sys.executable)")
+
 .PHONY: install
 install:
 	@echo "Creating virtual environment and installing dependencies using uv..."
@@ -31,26 +39,24 @@ clean:
 .PHONY: rebuild
 rebuild: clean install build
 
-ifeq ($(OS),Windows_NT)
-    TEST_BUILD_TYPE := RelWithDebInfo
-else
-    TEST_BUILD_TYPE := Debug
-endif
-
 .PHONY: build-tests
 build-tests:
+	@echo "Configuring test build..."
 	uv run cmake -S . -B $(BUILD_DIR_TEST) \
 		-DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) \
 		-DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON \
-		-DPython_EXECUTABLE=$(shell uv run python -c "import sys; print(sys.executable)")
+		-DPython_EXECUTABLE=$(PYTHON_EXECUTABLE)
+	@echo "Compiling C unit tests..."
 	uv run cmake --build $(BUILD_DIR_TEST) --config $(TEST_BUILD_TYPE)
 
 .PHONY: test-c
 test-c: build-tests
 	@echo "Running C unit tests..."
-	ctest --rerun-failed --output-on-failure --test-dir $(BUILD_DIR_TEST) \
-		-R "^ext/" \
-		-C $(TEST_BUILD_TYPE)
+	rm -f $(BUILD_DIR_TEST)/Testing/Temporary/LastTestsFailed.cmake
+	ctest --output-on-failure \
+		--test-dir $(BUILD_DIR_TEST) \
+		-C $(TEST_BUILD_TYPE) \
+		-R "^ext/"
 
 .PHONY: test-py
 test-py:
