@@ -45,6 +45,7 @@ class DataSchema:
         The risk-free rate. By default, "rf_rate" is
         used as the column name for this field.
     """
+
     stock_identifier: str = "stock_id"
     date: str = "date"
     option_type: str = "option_type"
@@ -127,8 +128,14 @@ def risk_neutral_moments(
 
     ds = data_schema  # alias for brevity
     required_cols = {
-        ds.stock_identifier, ds.date, ds.option_type, ds.spot_price,
-        ds.strike_price, ds.time_to_maturity, ds.implied_volatility, ds.rf_rate
+        ds.stock_identifier,
+        ds.date,
+        ds.option_type,
+        ds.spot_price,
+        ds.strike_price,
+        ds.time_to_maturity,
+        ds.implied_volatility,
+        ds.rf_rate,
     }
     missing = required_cols - set(options_data.columns)
     if missing:
@@ -137,8 +144,7 @@ def risk_neutral_moments(
     # Filter OTM options
     # Call OTM: Strike > spot price, Put OTM: Strike < spot price
     otm = (
-        options_data
-        .filter(
+        options_data.filter(
             pl.when(pl.col(ds.option_type) == ds.call_flag)
             .then(pl.col(ds.strike_price) > pl.col(ds.spot_price))
             .otherwise(pl.col(ds.strike_price) < pl.col(ds.spot_price))
@@ -156,16 +162,19 @@ def risk_neutral_moments(
     # We want one row in the groups table per (stock, period) pair, and flat
     # arrays for the option-level data, concatenated in the same order
     groups = (
-        otm
-        .with_columns(pl.col(ds.date).dt.truncate(group_freq).alias("_period"))
+        otm.with_columns(
+            pl.col(ds.date).dt.truncate(group_freq).alias("_period")
+        )
         .sort([ds.stock_identifier, "_period"])
         .group_by([ds.stock_identifier, "_period"], maintain_order=True)
-        .agg([
-            pl.col(ds.spot_price).first().alias("_spot"),
-            pl.col(ds.rf_rate).first().alias("_r"),
-            (pl.col(ds.time_to_maturity) / 252.0).first().alias("_T"),
-            pl.len().alias("_n_opts"),
-        ])
+        .agg(
+            [
+                pl.col(ds.spot_price).first().alias("_spot"),
+                pl.col(ds.rf_rate).first().alias("_r"),
+                (pl.col(ds.time_to_maturity) / 252.0).first().alias("_T"),
+                pl.len().alias("_n_opts"),
+            ]
+        )
     )
 
     n_groups: int = len(groups)
@@ -198,19 +207,18 @@ def risk_neutral_moments(
     )
 
     # reconstruct output dataframe
-    return (
-        groups
-        .select(
-            pl.col(ds.stock_identifier).alias("stock_id"),
-            pl.col("_period").alias("date"),
-        ).with_columns([
+    return groups.select(
+        pl.col(ds.stock_identifier).alias("stock_id"),
+        pl.col("_period").alias("date"),
+    ).with_columns(
+        [
             pl.Series("varQ", varQ, dtype=pl.Float64),
             pl.Series(
                 "volQ",
                 np.sqrt(np.where(varQ > 0, varQ, np.nan)) * np.sqrt(12.0),
-                dtype=pl.Float64
+                dtype=pl.Float64,
             ),
             pl.Series("skewQ", skewQ, dtype=pl.Float64),
-            pl.Series("kurtQ", kurtQ,  dtype=pl.Float64),
-        ])
+            pl.Series("kurtQ", kurtQ, dtype=pl.Float64),
+        ]
     )

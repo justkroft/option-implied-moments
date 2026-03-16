@@ -19,7 +19,7 @@ def single_group_input(
     r: float = 0.02,
     ttm: float = 0.25,
     call_strikes: np.ndarray | None = None,
-    put_strikes:  np.ndarray | None = None,
+    put_strikes: np.ndarray | None = None,
     ivol: float = 0.20,
 ) -> dict:
     """
@@ -29,7 +29,7 @@ def single_group_input(
     if call_strikes is None:
         call_strikes = spot + np.arange(1, n_calls + 1) * 5.0
     if put_strikes is None:
-        put_strikes  = spot - np.arange(1, n_puts  + 1) * 5.0
+        put_strikes = spot - np.arange(1, n_puts + 1) * 5.0
 
     strikes = np.concatenate([call_strikes, put_strikes])
     flags = np.array(
@@ -50,7 +50,9 @@ def single_group_input(
 
 
 # Successful execution of Cython function
-def _wide_grid_inputs(spot: float, ivol: float, ttm: float, n: int = 40) -> dict:  # noqa: E501
+def _wide_grid_inputs(
+    spot: float, ivol: float, ttm: float, n: int = 40
+) -> dict:  # noqa: E501
     """
     Inputs with a strike grid that scales with implied volatility and TTM
     so the integration domain covers the tails.
@@ -59,7 +61,7 @@ def _wide_grid_inputs(spot: float, ivol: float, ttm: float, n: int = 40) -> dict
     log_bounds = 4.0 * std
 
     call_strikes = spot * np.exp(np.linspace(0.01, log_bounds, n))
-    put_strikes  = spot * np.exp(np.linspace(-log_bounds, -0.01, n))
+    put_strikes = spot * np.exp(np.linspace(-log_bounds, -0.01, n))
 
     return single_group_input(
         call_strikes=call_strikes,
@@ -74,8 +76,8 @@ def _wide_grid_inputs(spot: float, ivol: float, ttm: float, n: int = 40) -> dict
 def valid_single_group_data() -> dict:
     return single_group_input()
 
-class TestComputeTrapzRnm:
 
+class TestComputeTrapzRnm:
     def test_return_shapes(self, valid_single_group_data):
         """
         Test that output arrays have correct shapes for single group input.
@@ -115,7 +117,7 @@ class TestComputeTrapzRnm:
         offsets = np.arange(5, 45, 5, dtype=np.float64)
         inp = single_group_input(
             call_strikes=spot + offsets,
-            put_strikes=spot  - offsets,
+            put_strikes=spot - offsets,
             ivol=0.20,
         )
         skew, _, _ = compute_trapz_rnm(**inp)
@@ -129,9 +131,8 @@ class TestComputeTrapzRnm:
         inp_sorted = single_group_input()
 
         inp_shuffled = {k: v.copy() for k, v in inp_sorted.items()}
-        perm = (
-            np.random.default_rng(42)
-            .permutation(len(inp_sorted["strikes"]))
+        perm = np.random.default_rng(42).permutation(
+            len(inp_sorted["strikes"])
         )
         inp_shuffled["strikes"] = inp_sorted["strikes"][perm]
         inp_shuffled["ivols"] = inp_sorted["ivols"][perm]
@@ -149,7 +150,7 @@ class TestComputeTrapzRnm:
         On a grid scaled to +/-4 sigma, variance must be strictly increasing
         with implied volatility.
         """
-        spot  = 100.0
+        spot = 100.0
         ivols = [0.10, 0.20, 0.30, 0.40]
         vars_ = []
         for ivol in ivols:
@@ -160,13 +161,12 @@ class TestComputeTrapzRnm:
         for i in range(len(vars_) - 1):
             assert vars_[i] < vars_[i + 1], (
                 f"Variance not increasing: ivol={ivols[i]:.2f} -> var={vars_[i]:.6f}, "  # noqa: E501
-                f"ivol={ivols[i+1]:.2f} -> var={vars_[i+1]:.6f}"
+                f"ivol={ivols[i + 1]:.2f} -> var={vars_[i + 1]:.6f}"
             )
 
 
 # Test errors
 class TestComputeTrapzRnmErrors:
-
     def test_fewer_than_4_options_returns_nan(self):
         inp = single_group_input(n_calls=1, n_puts=2)
         var, skew, kurt = compute_trapz_rnm(**inp)
@@ -205,8 +205,8 @@ class TestComputeTrapzRnmErrors:
 
         batch = dict(
             strikes=np.concatenate([valid["strikes"], invalid["strikes"]]),
-            ivols=np.concatenate([valid["ivols"],   invalid["ivols"]]),
-            flags=np.concatenate([valid["flags"],   invalid["flags"]]),
+            ivols=np.concatenate([valid["ivols"], invalid["ivols"]]),
+            flags=np.concatenate([valid["flags"], invalid["flags"]]),
             spots=np.array([100.0, 100.0]),
             rf=np.array([0.02, 0.02]),
             ttm=np.array([0.25, 0.25]),
@@ -220,7 +220,6 @@ class TestComputeTrapzRnmErrors:
 
 # Edge cases
 class TestComputeTrapzRnmEdgeCases:
-
     def test_zero_groups(self):
         """Empty batch returns three empty arrays without error."""
         skew, var, kurt = compute_trapz_rnm(
@@ -233,13 +232,13 @@ class TestComputeTrapzRnmEdgeCases:
             indptr=np.array([0], dtype=np.int64),
         )
         assert len(skew) == 0
-        assert len(var)  == 0
+        assert len(var) == 0
         assert len(kurt) == 0
 
     def test_large_batch_no_crash(self):
         """Stress test somewhat large input data"""
         n_groups = 500
-        n_per = 16   # 8 calls + 8 puts
+        n_per = 16  # 8 calls + 8 puts
         total_opt = n_groups * n_per
 
         spot = 100.0
@@ -249,10 +248,10 @@ class TestComputeTrapzRnmEdgeCases:
 
         for g in range(n_groups):
             base = g * n_per
-            strikes[base:base+8] = spot + np.arange(5, 45, 5)
-            strikes[base+8:base+16] = spot - np.arange(5, 45, 5)
-            flags[base:base+8] = OPT_CALL
-            flags[base+8:base+16] = OPT_PUT
+            strikes[base : base + 8] = spot + np.arange(5, 45, 5)
+            strikes[base + 8 : base + 16] = spot - np.arange(5, 45, 5)
+            flags[base : base + 8] = OPT_CALL
+            flags[base + 8 : base + 16] = OPT_PUT
 
         spots = np.full(n_groups, spot)
         rf_arr = np.full(n_groups, 0.02)
