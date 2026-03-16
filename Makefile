@@ -31,12 +31,18 @@ clean:
 .PHONY: rebuild
 rebuild: clean install build
 
+ifeq ($(OS),Windows_NT)
+    TEST_BUILD_TYPE := RelWithDebInfo
+else
+    TEST_BUILD_TYPE := Debug
+endif
+
 .PHONY: build-tests
 build-tests:
-	# We don't need OpenMP for unit tests and hence disable it here
-	@echo "Configuring test build..."
-	uv run cmake -S . -B $(BUILD_DIR_TEST) -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON
-	@echo "Compiling C unit tests..."
+	uv run cmake -S . -B $(BUILD_DIR_TEST) \
+		-DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) \
+		-DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON \
+		-DPython_EXECUTABLE=$(shell uv run python -c "import sys; print(sys.executable)")
 	uv run cmake --build $(BUILD_DIR_TEST)
 
 .PHONY: test-c
