@@ -43,7 +43,7 @@ build-tests:
 		-DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) \
 		-DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON \
 		-DPython_EXECUTABLE=$(shell uv run python -c "import sys; print(sys.executable)")
-	uv run cmake --build $(BUILD_DIR_TEST)
+	uv run cmake --build $(BUILD_DIR_TEST) --config $(TEST_BUILD_TYPE)
 
 .PHONY: test-c
 test-c: build-tests
