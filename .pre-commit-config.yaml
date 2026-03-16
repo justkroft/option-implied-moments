@@ -10,11 +10,6 @@ repos:
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.4
     hooks:
-    # for python files
     - id: ruff
       types_or: [ python, pyi ]
       args: [ --fix ]
-    - id: ruff
-      name: ruff (cython)
-      types_or: [ cython ]
-      args: [ --fix, --line-length=88 ]
