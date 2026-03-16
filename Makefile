@@ -48,7 +48,9 @@ build-tests:
 .PHONY: test-c
 test-c: build-tests
 	@echo "Running C unit tests..."
-	ctest --rerun-failed --output-on-failure --test-dir $(BUILD_DIR_TEST) -R "^ext/"
+	ctest --rerun-failed --output-on-failure --test-dir $(BUILD_DIR_TEST) \
+		-R "^ext/" \
+		-C $(TEST_BUILD_TYPE)
 
 .PHONY: test-py
 test-py:
