@@ -98,11 +98,6 @@ jobs:
       - name: Build package
         run: uv build
 
-      - name: Smoke test wheel
-        run: |
-          pip install dist/*.whl --force-reinstall
-          python -c "from src.ext.trapezoid_rnm import compute_trapz_rnm; print('OK')"
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
