@@ -6,6 +6,13 @@ import polars as pl
 
 from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 
+ERROR_MAP = {
+    -1: "Memory allocation failed",
+    -2: "No OTM call options in group",
+    -3: "No OTM put options in group",
+    -4: "Fewer than 4 options in group",
+}
+
 
 @dataclass(frozen=True)
 class DataSchema:
@@ -220,6 +227,20 @@ def risk_neutral_moments(
         per_group_ttm,
         indptr,
     )
+
+    failed_groups = rc != 0
+    if failed_groups.any():
+        unique_errors = np.unique(rc[failed_groups])
+        for err in unique_errors:
+            count = (rc == err).sum()
+            err_msg = ERROR_MAP.get(err, "Unknown error")
+            msg = f"Group(s) with return code {err} ({err_msg}): {count}"
+            msg += " group(s) affected. Computed moments will be NaN for"
+            msg += " these groups."
+            warnings.warn(
+                msg,
+                UserWarning
+            )
 
     # reconstruct output dataframe
     return groups.select(
