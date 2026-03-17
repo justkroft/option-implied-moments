@@ -211,7 +211,7 @@ def risk_neutral_moments(
     per_group_ttm = groups["_T"].to_numpy().astype(np.float64)
 
     # dispatch to Cython function
-    varQ, skewQ, kurtQ = compute_trapz_rnm(
+    varQ, skewQ, kurtQ, rc = compute_trapz_rnm(
         flat_strikes,
         flat_ivols,
         flat_flags,

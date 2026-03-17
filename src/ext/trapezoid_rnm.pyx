@@ -77,7 +77,8 @@ def compute_trapz_rnm(
     var : ndarray, shape (G,), float64
     skew : ndarray, shape (G,), float64
     kurt : ndarray, shape (G,), float64
-        Risk-neutral moments per group; NaN where computation failed.
+    rc : ndarray, shape (G,), int32
+        Risk-neutral moments per group and return code; NaN where computation failed.
     """
 
     cdef:
@@ -97,6 +98,7 @@ def compute_trapz_rnm(
         double[::1] out_var = np.empty(n_groups, dtype=np.float64)
         double[::1] out_skew = np.empty(n_groups, dtype=np.float64)
         double[::1] out_kurt = np.empty(n_groups, dtype=np.float64)
+        int[::1] out_rc = np.empty(n_groups, dtype=np.int32)
 
         TrapezoidResult result
         int rc
@@ -117,6 +119,8 @@ def compute_trapz_rnm(
             mv_ttm[g],
             &result
         )
+        # Store return code
+        out_rc[g] = rc
 
         # trapz_moments() from c func sets NaN on all error paths, hence we can
         # unconditionally store the results
@@ -128,4 +132,5 @@ def compute_trapz_rnm(
         np.asarray(out_var),
         np.asarray(out_skew),
         np.asarray(out_kurt),
+        np.asarray(out_rc)
     )
