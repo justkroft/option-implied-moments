@@ -117,7 +117,10 @@ static double bkm_mu(double r, double T, double V, double W, double X) {
 
 /* ----
 * Sort a struct of (strike, implied vol) pairs so that calls and puts are independently
-* sorted in ascending strike order. This is required for the trapezoidal integration to work correctly.
+* sorted in ascending strike order. This is required for the trapezoidal integration to
+* work correctly.
+* The natural integration order for puts should go from the strike nearest the spot
+* outward, mirroring how calls sweep upward from spot.
 * ---- */
 typedef struct {
     double strike;
@@ -131,6 +134,11 @@ static int cmp_strike_asc(const void *a, const void *b) {
     return (ka > kb) - (ka < kb);
 }
 
+static int cmp_strike_desc(const void *a, const void *b) {
+    double ka = ((const OptionRec *)a)->strike;
+    double kb = ((const OptionRec *)b)->strike;
+    return (ka < kb) - (ka > kb);
+}
 
 /* ----
 * Helper function to compute the trapezoidal sum for either calls or puts
@@ -195,11 +203,13 @@ int trapz_moments(
     double spot,
     double r,
     double T,
-    TrapezoidResult *out
+    double *out_var,
+    double *out_skew,
+    double *out_kurt
 )
 {
     /* Default output to NaN */
-    out->var = out->skew = out->kurt = (double)NAN;
+    *out_var = *out_skew = *out_kurt = (double)NAN;
 
     /* This check is likely redundant since we check for at least 4 options in cython ext */
     if (n < 4) {
@@ -251,7 +261,7 @@ int trapz_moments(
 
     /* Sort ascending by strikes */
     qsort(calls, n_calls, sizeof(OptionRec), cmp_strike_asc);
-    qsort(puts, n_puts, sizeof(OptionRec), cmp_strike_asc);
+    qsort(puts, n_puts, sizeof(OptionRec), cmp_strike_desc);
 
     /* Calc option price */
     for (size_t j = 0; j < n_calls; ++j) {
@@ -291,9 +301,9 @@ int trapz_moments(
     double muu = bkm_mu(r, T, V, W, X);
     double ev_mu2 = exprt * V - muu * muu;
 
-    out->var = ev_mu2;
-    out->skew = (exprt * W - 3.0 * muu * exprt * V + 2.0 * muu * muu * muu) / pow(ev_mu2, 1.5);
-    out->kurt = (exprt * X
+    *out_var = ev_mu2;
+    *out_skew = -(exprt * W - 3.0 * muu * exprt * V + 2.0 * muu * muu * muu) / pow(ev_mu2, 1.5);
+    *out_kurt = (exprt * X
                 - 4.0 * muu * exprt * W
                 + 6.0 * exprt * muu * muu * V
                 - 3.0 * muu * muu * muu * muu)

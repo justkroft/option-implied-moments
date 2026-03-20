@@ -67,7 +67,9 @@ int trapz_moments(
     double spot,
     double r,
     double T,
-    TrapezoidResult *out
+    double *out_var,    // <-- separate pointers
+    double *out_skew,
+    double *out_kurt
 );
 
 #endif

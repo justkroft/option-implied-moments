@@ -14,11 +14,6 @@ cdef extern from "trapezoid_core.h" nogil:
     int TRAPZ_ERR_NO_PUTS
     int TRAPZ_ERR_FEW_OPT
 
-    ctypedef struct TrapezoidResult:
-        double skew
-        double var
-        double kurt
-
     int trapz_moments(
         size_t n,
         const double *strikes,
@@ -27,7 +22,9 @@ cdef extern from "trapezoid_core.h" nogil:
         double spot,
         double r,
         double T,
-        TrapezoidResult *out
+        double *out_var,
+        double *out_skew,
+        double *out_kurt
     )
 
 # Same as OPT_CALL / OPT_PUT in trapezoid_core.h. Mind to keep in sync
@@ -101,13 +98,12 @@ def compute_trapz_rnm(
         double[::1] mv_ttm = np.ascontiguousarray(ttm)
         intp_t[::1] mv_indptr = np.ascontiguousarray(indptr)
 
-        # output arrays
-        double[::1] out_var = np.empty(n_groups, dtype=np.float64)
-        double[::1] out_skew = np.empty(n_groups, dtype=np.float64)
-        double[::1] out_kurt = np.empty(n_groups, dtype=np.float64)
-        int[::1] out_rc = np.empty(n_groups, dtype=np.int32)
+        # output arrays - initialize to NaN/0 to avoid uninitialized memory
+        double[::1] out_var = np.full(n_groups, np.nan, dtype=np.float64)
+        double[::1] out_skew = np.full(n_groups, np.nan, dtype=np.float64)
+        double[::1] out_kurt = np.full(n_groups, np.nan, dtype=np.float64)
+        int[::1] out_rc = np.zeros(n_groups, dtype=np.int32)
 
-        TrapezoidResult result
         int rc
 
     # input validation
@@ -145,9 +141,8 @@ def compute_trapz_rnm(
             )
 
     for g in prange(n_groups, nogil=True, schedule="dynamic"):
-
-        start = mv_indptr[g]
-        end = mv_indptr[g + 1]
+        start   = mv_indptr[g]
+        end     = mv_indptr[g + 1]
         seg_len = end - start
 
         rc = trapz_moments(
@@ -158,16 +153,11 @@ def compute_trapz_rnm(
             mv_spots[g],
             mv_rf[g],
             mv_ttm[g],
-            &result
+            &out_var[g],    # each thread writes to its own slot
+            &out_skew[g],
+            &out_kurt[g]
         )
-        # Store return code
         out_rc[g] = rc
-
-        # trapz_moments() from c func sets NaN on all error paths, hence we can
-        # unconditionally store the results
-        out_var[g]  = result.var
-        out_skew[g] = result.skew
-        out_kurt[g] = result.kurt
 
     return (
         np.asarray(out_var),
