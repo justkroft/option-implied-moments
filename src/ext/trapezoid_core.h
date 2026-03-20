@@ -20,12 +20,6 @@
 #define OPT_CALL 1
 #define OPT_PUT 0
 
-typedef struct {
-    double var;
-    double skew;
-    double kurt;
-} TrapezoidResult;
-
 
 /* ----
 * Black-Scholes option pricing function
