@@ -201,6 +201,7 @@ int trapz_moments(
     /* Default output to NaN */
     out->var = out->skew = out->kurt = (double)NAN;
 
+    /* This check is likely redundant since we check for at least 4 options in cython ext */
     if (n < 4) {
         return TRAPZ_ERR_FEW_OPT;
     }
