@@ -166,10 +166,6 @@ def risk_neutral_moments(
         )
     )
 
-    # Raise error if too little data
-    if len(otm) == 0:
-        raise ValueError("No out-of-the-money options found in the data.")
-
     # Group by stock identifier and date; build CSR layout
     # We want one row in the groups table per (stock, period) pair, and flat
     # arrays for the option-level data, concatenated in the same order
@@ -191,17 +187,8 @@ def risk_neutral_moments(
 
     n_groups: int = len(groups)
 
-    # Build indptr from group sizes if enough data, else raise warning
+    # Build indptr from group sizes
     group_sizes = groups["_n_opts"].to_numpy().astype(np.int64)
-    if (group_sizes < 4).any():
-        undersampled = (group_sizes < 4).sum()
-        msg = f"{undersampled} group(s) have fewer than 4 OTM options, "
-        msg += "Computed moments will be NaN for these groups due to "
-        msg += "insufficient data."
-        warnings.warn(
-            msg,
-            UserWarning
-        )
 
     indptr = np.zeros(n_groups + 1, dtype=np.int64)
     np.cumsum(group_sizes, out=indptr[1:])

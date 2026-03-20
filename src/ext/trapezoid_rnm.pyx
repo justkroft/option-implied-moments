@@ -50,6 +50,7 @@ def compute_trapz_rnm(
     Bridge between the Python API and the C helper functions. This function does the
     following:
     - Accept pre-processed flat NumPy arrays + CSR-style group index pointers.
+    - Validate input consistency and data availability.
     - Iterate over groups in parallel with OpenMP prange.
     - Call C-code under nogil for each group.
     - Write scalar results into pre-allocated output arrays; return as NumPy arrays
@@ -79,6 +80,12 @@ def compute_trapz_rnm(
     kurt : ndarray, shape (G,), float64
     rc : ndarray, shape (G,), int32
         Risk-neutral moments per group and return code; NaN where computation failed.
+
+    Raises
+    ------
+    ValueError
+        If strikes, ivols, or flags have inconsistent lengths, if array lengths
+        don't match the CSR structure, or if any group has fewer than 4 options.
     """
 
     cdef:
@@ -102,6 +109,40 @@ def compute_trapz_rnm(
 
         TrapezoidResult result
         int rc
+
+    # input validation
+    if len(strikes) != len(ivols) or len(strikes) != len(flags):
+        raise ValueError(
+            f"strikes ({len(strikes)}), ivols ({len(ivols)}), and flags "
+            f"({len(flags)}) must all have the same length"
+        )
+
+    if len(strikes) == 0:
+        raise ValueError("No options provided (strikes array is empty)")
+
+    if len(spots) != n_groups or len(rf) != n_groups or len(ttm) != n_groups:
+        raise ValueError(
+            f"spots, rf, and ttm must have length equal to number of groups "
+            f"({n_groups}), got {len(spots)}, {len(rf)}, {len(ttm)}"
+        )
+
+    if indptr[0] != 0:
+        raise ValueError("indptr must start at 0")
+
+    if indptr[n_groups] != len(strikes):
+        raise ValueError(
+            f"indptr final value ({indptr[n_groups]}) must equal "
+            f"number of strikes ({len(strikes)})"
+        )
+
+    # Check that each group has at least 4 options
+    for g in range(n_groups):
+        seg_len = indptr[g + 1] - indptr[g]
+        if seg_len < 4:
+            raise ValueError(
+                f"Group {g} has only {seg_len} option(s), "
+                f"but at least 4 are required for moment computation"
+            )
 
     for g in prange(n_groups, nogil=True, schedule="dynamic"):
 
