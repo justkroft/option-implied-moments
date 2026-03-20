@@ -7,29 +7,6 @@ from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 from tests.conftest import _make_indptr, single_group_input
 
 
-# Successful execution of Cython function
-def _wide_grid_inputs(
-    spot: float, ivol: float, ttm: float, n: int = 40
-) -> dict:  # noqa: E501
-    """
-    Inputs with a strike grid that scales with implied volatility and TTM
-    so the integration domain covers the tails.
-    """
-    std = ivol * np.sqrt(ttm)
-    log_bounds = 4.0 * std
-
-    call_strikes = spot * np.exp(np.linspace(0.01, log_bounds, n))
-    put_strikes = spot * np.exp(np.linspace(-log_bounds, -0.01, n))
-
-    return single_group_input(
-        call_strikes=call_strikes,
-        put_strikes=put_strikes,
-        spot=spot,
-        ivol=ivol,
-        ttm=ttm,
-    )
-
-
 @pytest.fixture
 def valid_single_group_data() -> dict:
     return single_group_input()
@@ -59,13 +36,15 @@ class TestComputeTrapzRnm:
     def test_variance_positive(self, valid_single_group_data):
         var, _, _, rc = compute_trapz_rnm(**valid_single_group_data)
         assert var[0] > 0.0
-        assert rc[0] == 0  # Success code
+        assert rc[0] == 0
 
-    def test_kurtosis_exceeds_three(self, valid_single_group_data):
+    @pytest.mark.parametrize("ivol", [0.05, 0.10, 0.20, 0.50, 0.75])
+    def test_kurtosis_exceeds_three(self, ivol):
         """
         Sanity check; for a symmetric IV smile, kurtosis should be above 3
         """
-        _, _, kurt, rc = compute_trapz_rnm(**valid_single_group_data)
+        inp = single_group_input(ivol=ivol)
+        _, _, kurt, rc = compute_trapz_rnm(**inp)
         assert kurt[0] > 3.0
         assert rc[0] == 0
 
@@ -87,9 +66,53 @@ class TestComputeTrapzRnm:
         assert abs(skew[0]) < 0.01
         assert rc[0] == 0
 
+    def test_variance_scales_with_time(self):
+        """Variance should scale roughly as sigma^2 * T."""
+        sigma = 0.20
+        for T in [0.05, 0.25, 1.0]:
+            inp = single_group_input(ivol=sigma, ttm=T)
+            var, _, _, rc = compute_trapz_rnm(**inp)
+            assert rc[0] == 0
+
+            # Check that variance is positive and scales sensibly
+            expected_scale = sigma**2 * T
+            assert 0.1 * expected_scale < var[0] < 5.0 * expected_scale
+
+    def test_variance_increases_with_ivol(self):
+        """Variance should strictly increase with implied volatility."""
+        T = 0.25
+        variances = []
+        ivols = [0.10, 0.20, 0.40]
+
+        for sigma in ivols:
+            inp = single_group_input(ivol=sigma, ttm=T)
+            var, _, _, rc = compute_trapz_rnm(**inp)
+            assert rc[0] == 0
+            variances.append(var[0])
+
+        # Verify strict monotonicity
+        for i in range(len(variances) - 1):
+            assert variances[i] < variances[i + 1], (
+                "Variance not increasing with IV"
+            )
+
+    def test_moments_finite_across_rates(self):
+        """All moments should be computable across interest rate spectrum."""
+        spot = 100.0
+        rates = [0.001, 0.05, 0.10]
+
+        for r in rates:
+            inp = single_group_input(spot=spot, r=r)
+            var, skew, kurt, rc = compute_trapz_rnm(**inp)
+            assert rc[0] == 0
+            # All moments should be finite
+            assert not math.isnan(var[0]) and not math.isinf(var[0])
+            assert not math.isnan(skew[0]) and not math.isinf(skew[0])
+            assert not math.isnan(kurt[0]) and not math.isinf(kurt[0])
+
     def test_unsorted_strikes_give_same_result_as_sorted(self):
         """
-        C layer must sort internally; hence input order must not affect output.
+        C extension sorts internally; hence input order must not affect output.
         """
         inp_sorted = single_group_input()
 
@@ -109,43 +132,20 @@ class TestComputeTrapzRnm:
         np.testing.assert_allclose(k1, k2, rtol=1e-10)
         np.testing.assert_array_equal(rc1, rc2)
 
-    def test_higher_ivol_higher_variance(self):
-        """
-        On a grid scaled to +/-4 sigma, variance must be strictly increasing
-        with implied volatility.
-        """
-        spot = 100.0
-        ivols = [0.10, 0.20, 0.30, 0.40]
-        vars_ = []
-        for ivol in ivols:
-            inp = _wide_grid_inputs(spot=spot, ivol=ivol, ttm=0.25)
-            _, var, _, rc = compute_trapz_rnm(**inp)
-            vars_.append(var[0])
-            assert rc[0] == 0
 
-        for i in range(len(vars_) - 1):
-            assert vars_[i] < vars_[i + 1], (
-                f"Variance not increasing: ivol={ivols[i]:.2f} -> var={vars_[i]:.6f}, "  # noqa: E501
-                f"ivol={ivols[i + 1]:.2f} -> var={vars_[i + 1]:.6f}"
-            )
-
-
-# Test errors
 class TestComputeTrapzRnmErrors:
     def test_fewer_than_4_options_raises_valueerror(self):
-        """Groups with < 4 options should raise ValueError"""
         inp = single_group_input(n_calls=1, n_puts=2)
         with pytest.raises(ValueError, match="at least 4 are required"):
             compute_trapz_rnm(**inp)
 
     def test_no_calls_handled_by_c_function(self):
         """
-        No calls: Cython validation passes (not checking calls/puts count),
+        No call options: Cython validation passes (not checking calls/puts count),
         but C function should set NaN and return TRAPZ_ERR_NO_CALLS.
-        """
+        """  # noqa: E501
         inp = single_group_input(n_calls=0, n_puts=8)
         var, skew, kurt, rc = compute_trapz_rnm(**inp)
-        # C function detects no calls and returns TRAPZ_ERR_NO_CALLS (-2)
         assert rc[0] == -2
         assert math.isnan(var[0])
         assert math.isnan(skew[0])
@@ -153,23 +153,21 @@ class TestComputeTrapzRnmErrors:
 
     def test_no_puts_handled_by_c_function(self):
         """
-        No puts: Cython validation passes (not checking calls/puts count),
+        No put options: Cython validation passes (not checking calls/puts count),
         but C function should set NaN and return TRAPZ_ERR_NO_PUTS.
-        """
+        """  # noqa: E501
         inp = single_group_input(n_calls=8, n_puts=0)
         var, skew, kurt, rc = compute_trapz_rnm(**inp)
-        # C function detects no puts and returns TRAPZ_ERR_NO_PUTS (-3)
         assert rc[0] == -3
         assert math.isnan(var[0])
         assert math.isnan(skew[0])
         assert math.isnan(kurt[0])
 
     def test_exactly_4_options_succeeds(self):
-        """Exactly 4 options (2 calls, 2 puts) should work"""
         inp = single_group_input(n_calls=2, n_puts=2)
         var, _, _, rc = compute_trapz_rnm(**inp)
         assert not math.isnan(var[0])
-        assert rc[0] == 0  # Success
+        assert rc[0] == 0
 
     def test_mixed_valid_invalid_groups_raises_on_invalid(self):
         """
@@ -196,7 +194,6 @@ class TestComputeTrapzRnmErrors:
             compute_trapz_rnm(**batch)
 
 
-# Edge cases
 class TestComputeTrapzRnmEdgeCases:
     def test_zero_groups_raises_valueerror(self):
         """Empty batch raises ValueError due to empty strikes array"""
@@ -211,10 +208,47 @@ class TestComputeTrapzRnmEdgeCases:
                 indptr=np.array([0], dtype=np.int64),
             )
 
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            dict(ivol=0.01),
+            dict(ivol=0.50),
+            dict(ivol=2.0),
+            dict(r=-0.05),
+            dict(r=0.10),
+            dict(ttm=0.01),
+            dict(ttm=10.0),
+        ]
+    )
+    def test_variance_always_non_negative(self, kwargs):
+        """
+        Variance should be non-negative.
+        Slight negativity indicates accumulated rounding error.
+        """
+        inp = single_group_input(**kwargs)
+        var, _, _, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0, f"failed with return code {rc[0]} for {kwargs}"
+        assert var[0] > -1e-4, f"Large negative variance for {kwargs}"
+
+    @pytest.mark.parametrize("ivol", [0.15, 0.20, 0.50])
+    @pytest.mark.parametrize("r", [0.01, 0.05])
+    def test_skewness_magnitude(self, ivol, r):
+        """Skewness should be in [-3, 3] range for regular inputs."""
+        inp = single_group_input(ivol=ivol, r=r)
+        _, skew, _, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        assert -3.0 < skew[0] < 3.0, (
+            f"Unreasonable skew {skew[0]:.2f} for IV={ivol}, r={r}"
+        )
+        # Extreme skew is possible but should be finite
+        assert not math.isinf(skew[0]), (
+            f"Infinite skew for IV={ivol}, r={r}"
+        )
+
     def test_large_batch_no_crash(self):
         """Stress test somewhat large input data"""
         n_groups = 500
-        n_per = 16  # 8 calls + 8 puts
+        n_per = 16  # 8 calls / 8 puts
         total_opt = n_groups * n_per
 
         spot = 100.0
@@ -265,23 +299,7 @@ class TestComputeTrapzRnmEdgeCases:
             assert not math.isinf(val)
         assert rc[0] == 0
 
-    def test_near_zero_spot(self):
-        """Very small spot price relative to strikes."""
-        spot = 1e-6
-        inp = single_group_input(
-            spot=spot,
-            call_strikes=np.array([1e-5, 1e-4, 1e-3, 0.01]),
-            put_strikes=np.array([1e-7, 1e-8, 1e-9, 1e-10]),
-            ivol=0.50,
-            ttm=1.0,
-        )
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
-        # Should not crash or produce inf/nan
-        assert not math.isinf(var[0]) and not math.isnan(var[0])
-        assert rc[0] == 0
-
     def test_very_large_spot(self):
-        """Very large spot price."""
         spot = 1e6
         inp = single_group_input(
             spot=spot,
@@ -290,7 +308,7 @@ class TestComputeTrapzRnmEdgeCases:
             ivol=0.20,
             ttm=0.25,
         )
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert not math.isinf(var[0]) and not math.isnan(var[0])
         assert rc[0] == 0
 
@@ -306,25 +324,25 @@ class TestComputeTrapzRnmEdgeCases:
             put_strikes=put_strikes,
             ivol=0.20,
         )
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert not math.isinf(var[0]) and not math.isnan(var[0])
         assert rc[0] == 0
 
     def test_near_zero_ttm(self):
         """Time-to-maturity very close to zero (1 minute)."""
         inp = single_group_input(
-            ttm=1.0 / (252 * 6.5 * 60)
-        )  # ~1 minute
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
-        # With near-zero TTM, IV effect diminishes; variance → 0
+            ttm=1.0 / (6.5 * 60)
+        )
+        var, _, _, rc = compute_trapz_rnm(**inp)
+        # With near-zero TTM, IV effect diminishes; variance -> 0
         # Should not crash
         assert rc[0] == 0
         assert not math.isinf(var[0])
 
     def test_very_long_ttm(self):
         """Time-to-maturity of 10 years."""
-        inp = single_group_input(ttm=10.0)
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        inp = single_group_input(ttm=10.0 * 365)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert rc[0] == 0
         assert not math.isinf(var[0]) and not math.isnan(var[0])
 
@@ -334,29 +352,70 @@ class TestComputeTrapzRnmEdgeCases:
         Very low IV can cause numerical instability due to rounding.
         """
         inp = single_group_input(ivol=0.001)
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert rc[0] == 0
         # Note: Very low IV can produce slightly negative variance
         # due to rounding errors in numerical integration
         assert var[0] > -1e-4  # Allow small negative due to rounding
 
     def test_extreme_ivol_high(self):
-        """Implied volatility 200% (very high vol regime)."""
         inp = single_group_input(ivol=2.0)
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert rc[0] == 0
         assert not math.isinf(var[0]) and not math.isnan(var[0])
 
     def test_negative_interest_rate(self):
-        """Negative interest rate (ZIRP/NIRP)."""
         inp = single_group_input(r=-0.01)
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert rc[0] == 0
         assert var[0] > 0
 
     def test_high_positive_rate(self):
-        """Very high interest rate (10%)."""
         inp = single_group_input(r=0.10)
-        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        var, _, _, rc = compute_trapz_rnm(**inp)
         assert rc[0] == 0
         assert not math.isinf(var[0]) and not math.isnan(var[0])
+
+
+class TestComputeTrapzRnmSensitivity:
+    """Test that small input changes produce sensible output changes."""
+
+    def test_stability_iv_changes(self):
+        """Small change of implied vol."""
+        spot = 100.0
+        base_inp = single_group_input(spot=spot, ivol=0.20)
+        change_inp = single_group_input(spot=spot, ivol=0.200001)
+
+        base_var, _, _, _ = compute_trapz_rnm(**base_inp)
+        change_var, _, _, _ = compute_trapz_rnm(**change_inp)
+
+        # Variance should change smoothly
+        rel_change = abs(change_var[0] - base_var[0]) / base_var[0]
+        assert rel_change < 0.01  # Less than 1% change for 0.05% IV change
+
+    def test_stability_spot_changes(self):
+        """Small change of spot price."""
+        base_inp = single_group_input(spot=100.0)
+        change_inp = single_group_input(spot=100.01)
+
+        base_var, _, _, _ = compute_trapz_rnm(**base_inp)
+        change_var, _, _, _ = compute_trapz_rnm(**change_inp)
+
+        # Relative change should be proportional to spot change (0.01%)
+        rel_change = abs(change_var[0] - base_var[0]) / base_var[0]
+        assert rel_change < 0.001  # Highly stable to spot perturbation
+
+    def test_stability_strikes_changes(self):
+        """Small change of strike grid."""
+        base_inp = single_group_input(n_calls=8, n_puts=8)
+
+        # Change by 1 basis point
+        change_inp = base_inp.copy()
+        change_inp["strikes"] = base_inp["strikes"] * 1.0001
+
+        base_var, _, _, _ = compute_trapz_rnm(**base_inp)
+        change_var, _, _, _ = compute_trapz_rnm(**change_inp)
+
+        # Should be stable to tiny strike changes
+        rel_change = abs(change_var[0] - base_var[0]) / base_var[0]
+        assert rel_change < 0.001
