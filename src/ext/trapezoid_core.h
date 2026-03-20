@@ -50,13 +50,15 @@ double bs_price(
 * Parameters
 * ----------
 * n          : number of OTM options in a stock-month group
-* strikes    : OTM strike prices,  length n
+* strikes    : OTM strike prices, length n
 * ivols      : implied volatilities, length n (parallel to strikes)
-* flags      : OPT_CALL / OPT_PUT,  length n (parallel to strikes)
+* flags      : OPT_CALL / OPT_PUT, length n (parallel to strikes)
 * spot       : spot price S of the underlying
 * r          : continuously-compounded risk-free rate
 * T          : time-to-maturity in years
-* out        : pointer to result struct; set to NaN on error paths
+* out_var    : pointer to result variance Q
+* out_skew   : pointer to result skewness Q
+* out_kurt   : pointer to result Kurtosis Q
 *
 * ---- */
 int trapz_moments(
@@ -67,7 +69,7 @@ int trapz_moments(
     double spot,
     double r,
     double T,
-    double *out_var,    // <-- separate pointers
+    double *out_var,
     double *out_skew,
     double *out_kurt
 );
