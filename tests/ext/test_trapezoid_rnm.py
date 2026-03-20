@@ -4,49 +4,7 @@ import numpy as np
 import pytest
 from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 
-
-def _make_indptr(sizes: list[int]) -> np.ndarray:
-    """Build a CSR indptr array from a list of group sizes."""
-    indptr = np.zeros(len(sizes) + 1, dtype=np.intp)
-    np.cumsum(sizes, out=indptr[1:])
-    return indptr
-
-
-def single_group_input(
-    n_calls: int = 8,
-    n_puts: int = 8,
-    spot: float = 100.0,
-    r: float = 0.02,
-    ttm: float = 0.25,
-    call_strikes: np.ndarray | None = None,
-    put_strikes: np.ndarray | None = None,
-    ivol: float = 0.20,
-) -> dict:
-    """
-    Build minimal valid single-group fixture for compute_trapz_rnm
-    """
-    # 105, 110, ... for calls; 95, 90, ... for puts (if not provided)
-    if call_strikes is None:
-        call_strikes = spot + np.arange(1, n_calls + 1) * 5.0
-    if put_strikes is None:
-        put_strikes = spot - np.arange(1, n_puts + 1) * 5.0
-
-    strikes = np.concatenate([call_strikes, put_strikes])
-    flags = np.array(
-        [OPT_CALL] * len(call_strikes) + [OPT_PUT] * len(put_strikes),
-        dtype=np.intc,
-    )
-    ivols = np.full(len(strikes), ivol, dtype=np.float64)
-
-    return dict(
-        strikes=strikes,
-        ivols=ivols,
-        flags=flags,
-        spots=np.array([spot], dtype=np.float64),
-        rf=np.array([r], dtype=np.float64),
-        ttm=np.array([ttm], dtype=np.float64),
-        indptr=_make_indptr([len(strikes)]),
-    )
+from tests.conftest import _make_indptr, single_group_input
 
 
 # Successful execution of Cython function
@@ -306,3 +264,99 @@ class TestComputeTrapzRnmEdgeCases:
         for val in (var[0], skew[0], kurt[0]):
             assert not math.isinf(val)
         assert rc[0] == 0
+
+    def test_near_zero_spot(self):
+        """Very small spot price relative to strikes."""
+        spot = 1e-6
+        inp = single_group_input(
+            spot=spot,
+            call_strikes=np.array([1e-5, 1e-4, 1e-3, 0.01]),
+            put_strikes=np.array([1e-7, 1e-8, 1e-9, 1e-10]),
+            ivol=0.50,
+            ttm=1.0,
+        )
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        # Should not crash or produce inf/nan
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
+        assert rc[0] == 0
+
+    def test_very_large_spot(self):
+        """Very large spot price."""
+        spot = 1e6
+        inp = single_group_input(
+            spot=spot,
+            call_strikes=spot + np.array([1e4, 5e4, 1e5, 5e5]),
+            put_strikes=spot - np.array([1e4, 5e4, 1e5, 5e5]),
+            ivol=0.20,
+            ttm=0.25,
+        )
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
+        assert rc[0] == 0
+
+    def test_extreme_moneyness(self):
+        """Deep ITM and deep OTM options together."""
+        spot = 100.0
+        # Deep ITM calls (K << S), deep OTM calls (K >> S)
+        call_strikes = np.array([10.0, 50.0, 500.0, 1000.0])
+        put_strikes = np.array([150.0, 200.0, 500.0, 900.0])
+        inp = single_group_input(
+            spot=spot,
+            call_strikes=call_strikes,
+            put_strikes=put_strikes,
+            ivol=0.20,
+        )
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
+        assert rc[0] == 0
+
+    def test_near_zero_ttm(self):
+        """Time-to-maturity very close to zero (1 minute)."""
+        inp = single_group_input(
+            ttm=1.0 / (252 * 6.5 * 60)
+        )  # ~1 minute
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        # With near-zero TTM, IV effect diminishes; variance → 0
+        # Should not crash
+        assert rc[0] == 0
+        assert not math.isinf(var[0])
+
+    def test_very_long_ttm(self):
+        """Time-to-maturity of 10 years."""
+        inp = single_group_input(ttm=10.0)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
+
+    def test_extreme_ivol_low(self):
+        """Implied volatility 0.1% (very low vol regime).
+
+        Very low IV can cause numerical instability due to rounding.
+        """
+        inp = single_group_input(ivol=0.001)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        # Note: Very low IV can produce slightly negative variance
+        # due to rounding errors in numerical integration
+        assert var[0] > -1e-4  # Allow small negative due to rounding
+
+    def test_extreme_ivol_high(self):
+        """Implied volatility 200% (very high vol regime)."""
+        inp = single_group_input(ivol=2.0)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
+
+    def test_negative_interest_rate(self):
+        """Negative interest rate (ZIRP/NIRP)."""
+        inp = single_group_input(r=-0.01)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        assert var[0] > 0
+
+    def test_high_positive_rate(self):
+        """Very high interest rate (10%)."""
+        inp = single_group_input(r=0.10)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        assert rc[0] == 0
+        assert not math.isinf(var[0]) and not math.isnan(var[0])
