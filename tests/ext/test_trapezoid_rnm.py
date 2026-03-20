@@ -82,30 +82,34 @@ class TestComputeTrapzRnm:
         """
         Test that output arrays have correct shapes for single group input.
         """
-        varQ, skewQ, kurtQ = compute_trapz_rnm(**valid_single_group_data)
+        varQ, skewQ, kurtQ, rc = compute_trapz_rnm(**valid_single_group_data)
         assert varQ.shape == (1,)
         assert skewQ.shape == (1,)
         assert kurtQ.shape == (1,)
+        assert rc.shape == (1,)
 
     def test_return_types(self, valid_single_group_data):
         """
         Test that output arrays have correct dtypes for single group input.
         """
-        varQ, skewQ, kurtQ = compute_trapz_rnm(**valid_single_group_data)
+        varQ, skewQ, kurtQ, rc = compute_trapz_rnm(**valid_single_group_data)
         assert varQ.dtype == np.float64
         assert skewQ.dtype == np.float64
         assert kurtQ.dtype == np.float64
+        assert rc.dtype == np.int32
 
     def test_variance_positive(self, valid_single_group_data):
-        var, _, _ = compute_trapz_rnm(**valid_single_group_data)
+        var, _, _, rc = compute_trapz_rnm(**valid_single_group_data)
         assert var[0] > 0.0
+        assert rc[0] == 0  # Success code
 
     def test_kurtosis_exceeds_three(self, valid_single_group_data):
         """
         Sanity check; for a symmetric IV smile, kurtosis should be above 3
         """
-        _, _, kurt = compute_trapz_rnm(**valid_single_group_data)
+        _, _, kurt, rc = compute_trapz_rnm(**valid_single_group_data)
         assert kurt[0] > 3.0
+        assert rc[0] == 0
 
     def test_symmetric_smile_near_zero_skew(self):
         """
@@ -120,9 +124,10 @@ class TestComputeTrapzRnm:
             put_strikes=spot - offsets,
             ivol=0.20,
         )
-        skew, _, _ = compute_trapz_rnm(**inp)
+        skew, _, _, rc = compute_trapz_rnm(**inp)
         # near zero, not exact due to BS nonlinearity
         assert abs(skew[0]) < 0.01
+        assert rc[0] == 0
 
     def test_unsorted_strikes_give_same_result_as_sorted(self):
         """
@@ -138,12 +143,13 @@ class TestComputeTrapzRnm:
         inp_shuffled["ivols"] = inp_sorted["ivols"][perm]
         inp_shuffled["flags"] = inp_sorted["flags"][perm]
 
-        s1, v1, k1 = compute_trapz_rnm(**inp_sorted)
-        s2, v2, k2 = compute_trapz_rnm(**inp_shuffled)
+        s1, v1, k1, rc1 = compute_trapz_rnm(**inp_sorted)
+        s2, v2, k2, rc2 = compute_trapz_rnm(**inp_shuffled)
 
         np.testing.assert_allclose(s1, s2, rtol=1e-10)
         np.testing.assert_allclose(v1, v2, rtol=1e-10)
         np.testing.assert_allclose(k1, k2, rtol=1e-10)
+        np.testing.assert_array_equal(rc1, rc2)
 
     def test_higher_ivol_higher_variance(self):
         """
@@ -155,8 +161,9 @@ class TestComputeTrapzRnm:
         vars_ = []
         for ivol in ivols:
             inp = _wide_grid_inputs(spot=spot, ivol=ivol, ttm=0.25)
-            _, var, _ = compute_trapz_rnm(**inp)
+            _, var, _, rc = compute_trapz_rnm(**inp)
             vars_.append(var[0])
+            assert rc[0] == 0
 
         for i in range(len(vars_) - 1):
             assert vars_[i] < vars_[i + 1], (
@@ -167,35 +174,49 @@ class TestComputeTrapzRnm:
 
 # Test errors
 class TestComputeTrapzRnmErrors:
-    def test_fewer_than_4_options_returns_nan(self):
+    def test_fewer_than_4_options_raises_valueerror(self):
+        """Groups with < 4 options should raise ValueError"""
         inp = single_group_input(n_calls=1, n_puts=2)
-        var, skew, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(var[0])
-        assert math.isnan(skew[0])
-        assert math.isnan(kurt[0])
+        with pytest.raises(ValueError, match="at least 4 are required"):
+            compute_trapz_rnm(**inp)
 
-    def test_no_calls_returns_nan(self):
-        inp = single_group_input(n_calls=0, n_puts=8)
-        var, skew, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(var[0])
-        assert math.isnan(skew[0])
-        assert math.isnan(kurt[0])
-
-    def test_no_puts_returns_nan(self):
-        inp = single_group_input(n_calls=8, n_puts=0)
-        var, skew, kurt = compute_trapz_rnm(**inp)
-        assert math.isnan(var[0])
-        assert math.isnan(skew[0])
-        assert math.isnan(kurt[0])
-
-    def test_exactly_4_options_does_not_nan(self):
-        inp = single_group_input(n_calls=2, n_puts=2)
-        var, _, _ = compute_trapz_rnm(**inp)
-        assert not math.isnan(var[0])
-
-    def test_mixed_valid_invalid_groups(self):
+    def test_no_calls_handled_by_c_function(self):
         """
-        In a batch of two groups, a small group (< 4 opts) must produce NaN
+        No calls: Cython validation passes (not checking calls/puts count),
+        but C function should set NaN and return TRAPZ_ERR_NO_CALLS.
+        """
+        inp = single_group_input(n_calls=0, n_puts=8)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        # C function detects no calls and returns TRAPZ_ERR_NO_CALLS (-2)
+        assert rc[0] == -2
+        assert math.isnan(var[0])
+        assert math.isnan(skew[0])
+        assert math.isnan(kurt[0])
+
+    def test_no_puts_handled_by_c_function(self):
+        """
+        No puts: Cython validation passes (not checking calls/puts count),
+        but C function should set NaN and return TRAPZ_ERR_NO_PUTS.
+        """
+        inp = single_group_input(n_calls=8, n_puts=0)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
+        # C function detects no puts and returns TRAPZ_ERR_NO_PUTS (-3)
+        assert rc[0] == -3
+        assert math.isnan(var[0])
+        assert math.isnan(skew[0])
+        assert math.isnan(kurt[0])
+
+    def test_exactly_4_options_succeeds(self):
+        """Exactly 4 options (2 calls, 2 puts) should work"""
+        inp = single_group_input(n_calls=2, n_puts=2)
+        var, _, _, rc = compute_trapz_rnm(**inp)
+        assert not math.isnan(var[0])
+        assert rc[0] == 0  # Success
+
+    def test_mixed_valid_invalid_groups_raises_on_invalid(self):
+        """
+        If any group has < 4 options, Cython raises ValueError during
+        validation.
         """
         valid = single_group_input(n_calls=8, n_puts=8)
         invalid = single_group_input(n_calls=1, n_puts=1)
@@ -212,28 +233,25 @@ class TestComputeTrapzRnmErrors:
             ttm=np.array([0.25, 0.25]),
             indptr=_make_indptr([n_v, n_i]),
         )
-        var, _, _ = compute_trapz_rnm(**batch)
-
-        assert not math.isnan(var[0]), "valid group should not be NaN"
-        assert math.isnan(var[1]), "invalid group should be NaN"
+        # Should raise ValueError due to second group having only 2 options
+        with pytest.raises(ValueError, match="at least 4 are required"):
+            compute_trapz_rnm(**batch)
 
 
 # Edge cases
 class TestComputeTrapzRnmEdgeCases:
-    def test_zero_groups(self):
-        """Empty batch returns three empty arrays without error."""
-        skew, var, kurt = compute_trapz_rnm(
-            strikes=np.array([], dtype=np.float64),
-            ivols=np.array([], dtype=np.float64),
-            flags=np.array([], dtype=np.int32),
-            spots=np.array([], dtype=np.float64),
-            rf=np.array([], dtype=np.float64),
-            ttm=np.array([], dtype=np.float64),
-            indptr=np.array([0], dtype=np.int64),
-        )
-        assert len(skew) == 0
-        assert len(var) == 0
-        assert len(kurt) == 0
+    def test_zero_groups_raises_valueerror(self):
+        """Empty batch raises ValueError due to empty strikes array"""
+        with pytest.raises(ValueError, match="No options provided"):
+            compute_trapz_rnm(
+                strikes=np.array([], dtype=np.float64),
+                ivols=np.array([], dtype=np.float64),
+                flags=np.array([], dtype=np.int32),
+                spots=np.array([], dtype=np.float64),
+                rf=np.array([], dtype=np.float64),
+                ttm=np.array([], dtype=np.float64),
+                indptr=np.array([0], dtype=np.int64),
+            )
 
     def test_large_batch_no_crash(self):
         """Stress test somewhat large input data"""
@@ -258,11 +276,12 @@ class TestComputeTrapzRnmEdgeCases:
         ttm_arr = np.full(n_groups, 0.25)
         indptr = _make_indptr([n_per] * n_groups)
 
-        var, skew, _ = compute_trapz_rnm(
+        var, skew, _, rc = compute_trapz_rnm(
             strikes, ivols, flags, spots, rf_arr, ttm_arr, indptr
         )
         assert not np.all(np.isnan(var))
         assert skew.shape == (n_groups,)
+        assert np.all(rc == 0)  # All groups should succeed
 
     def test_very_deep_otm_options(self):
         """
@@ -276,12 +295,14 @@ class TestComputeTrapzRnmEdgeCases:
             put_strikes=deep_puts,
             ivol=0.20,
         )
-        var, skew, kurt = compute_trapz_rnm(**inp)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
         for val in (var[0], skew[0], kurt[0]):
             assert math.isfinite(val) or math.isnan(val)
+        assert rc[0] == 0
 
     def test_near_zero_ivol(self):
         inp = single_group_input(ivol=1e-4)
-        var, skew, kurt = compute_trapz_rnm(**inp)
+        var, skew, kurt, rc = compute_trapz_rnm(**inp)
         for val in (var[0], skew[0], kurt[0]):
             assert not math.isinf(val)
+        assert rc[0] == 0
