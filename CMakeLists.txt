@@ -161,6 +161,11 @@ add_cython_extension(
     "src/ext/trapezoid_rnm.pyx"
     "src/ext/trapezoid_core.c"
 )
+add_cython_extension(
+    "src.ext.omp_utils"
+    "src/ext/omp_utils.pyx"
+    ""
+)
 
 # enable testing with CTest
 option(TESTING "Build tests for C extensions" ON)
