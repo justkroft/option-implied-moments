@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(option-implied-moments C)
 
-find_package(Python 3.13 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
+find_package(Python 3.11 REQUIRED COMPONENTS Interpreter Development.Module NumPy)
 find_program(CYTHON_EXECUTABLE NAMES cython cython3 REQUIRED)
 
 # Compiler directives for Cython
