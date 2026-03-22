@@ -29,6 +29,7 @@ clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf $(BUILD_DIR_TEST)
 	rm -f  src/ext/trapezoid_rnm.c
+	rm -f src/ext/omp_utils.c
 	find . -name "*.so"  -delete
 	find . -name "*.pyd" -delete
 	rm -rf _skbuild build dist *.egg-info
