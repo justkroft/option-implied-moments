@@ -224,10 +224,7 @@ def risk_neutral_moments(
             msg = f"Group(s) with return code {err} ({err_msg}): {count}"
             msg += " group(s) affected. Computed moments will be NaN for"
             msg += " these groups."
-            warnings.warn(
-                msg,
-                UserWarning
-            )
+            warnings.warn(msg, UserWarning)
 
     # reconstruct output dataframe
     return groups.select(

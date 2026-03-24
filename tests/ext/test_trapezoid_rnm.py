@@ -218,7 +218,7 @@ class TestComputeTrapzRnmEdgeCases:
             dict(r=0.10),
             dict(ttm=0.01),
             dict(ttm=10.0),
-        ]
+        ],
     )
     def test_variance_always_non_negative(self, kwargs):
         """
@@ -241,9 +241,7 @@ class TestComputeTrapzRnmEdgeCases:
             f"Unreasonable skew {skew[0]:.2f} for IV={ivol}, r={r}"
         )
         # Extreme skew is possible but should be finite
-        assert not math.isinf(skew[0]), (
-            f"Infinite skew for IV={ivol}, r={r}"
-        )
+        assert not math.isinf(skew[0]), f"Infinite skew for IV={ivol}, r={r}"
 
     def test_large_batch_no_crash(self):
         """Stress test somewhat large input data"""
@@ -330,9 +328,7 @@ class TestComputeTrapzRnmEdgeCases:
 
     def test_near_zero_ttm(self):
         """Time-to-maturity very close to zero (1 minute)."""
-        inp = single_group_input(
-            ttm=1.0 / (6.5 * 60)
-        )
+        inp = single_group_input(ttm=1.0 / (6.5 * 60))
         var, _, _, rc = compute_trapz_rnm(**inp)
         # With near-zero TTM, IV effect diminishes; variance -> 0
         # Should not crash
