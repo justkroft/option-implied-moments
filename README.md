@@ -5,9 +5,9 @@
 
 # Option Implied Moments
 
-This repository contains code to compute option implied, or risk-neutral, higher moments from stock option data. Stock return characteristics like volatiliy, skewness, and kurtosis are computed based on out-of-the-money stock option contracts under risk-neutral measure $\mathbb{Q}$.
+This repository contains code to compute option implied, or risk-neutral, higher moments from stock option data. Stock return characteristics like volatility, skewness, and kurtosis are computed based on out-of-the-money stock option contracts under risk-neutral measure $\mathbb{Q}$.
 
-We calculate the risk-neutral volatiliy, skewness, and kurtosis using the methodology of [[1]](#1). The theorem they formalise in their paper shows a mechanism to compute the moments of the risk-neutral return density from a collection of out-of-the-money calls and puts:
+Risk-neutral volatility, skewness, and kurtosis are estimated from a cross-section of out-of-the-money calls and puts following [[1]](#1):
 
 $$
 Var^{\mathbb{Q}} = \frac{e^{r\tau}V_{i,t} - \mu^{2}}{\tau},
@@ -22,7 +22,7 @@ $$
 where
 
 $$
-\mu = e^{r\tau} - 1 - \frac{e^{r\tau}}{2}V - \frac{e^{r\tau}}{b}W - \frac{e^{r\tau}}{24}X
+\mu = e^{r\tau} - 1 - \frac{e^{r\tau}}{2}V - \frac{e^{r\tau}}{6}W - \frac{e^{r\tau}}{24}X
 $$
 
 $V$, $W$, and $X$ are the expected squared, cubed and fourth-power log of the stock return during the period from $t$ to time $t + \tau$ under measure $\mathbb{Q}$; $r$ is the continuously compounded risk-free rate for the same period. To estimate these parameters, we follow the trapezoidal implementation from [[2]](#2) to use discrete strike prices from calls and put options. Please refer to Appendix B of the paper for the formalised implementation details.
@@ -30,7 +30,7 @@ $V$, $W$, and $X$ are the expected squared, cubed and fourth-power log of the st
 
 ## Programming Implementation Details
 
-The architecture is done with efficiency and speed in mind. The library is implemented in three layers.
+The library is implemented in three layers.
 
 > Note: This library works best with implied volatility surface data from data providers like WRDS.
 
@@ -66,7 +66,7 @@ DataFrame.
 
 # References
 <a id="1">[1]</a>
-Bakshi, G., Kapadia, N., & Madan, D. (2003). Stock return characteristics, skew laws, and the differential pricing of individual equity options. The Review of Financial Studies, 16(1), 101-143.
+Bakshi, G., Kapadia, N., & Madan, D. (2003). Stock return characteristics, skew laws, and the differential pricing of individual equity options. *The Review of Financial Studies, 16*(1), 101-143.
 
 <a id="2">[2]</a>
 Bali, Turan G. and Hu, Jianfeng and Murray, Scott, Option Implied Volatility, Skewness, and Kurtosis and the Cross-Section of Expected Stock Returns (January 1, 2019). Georgetown McDonough School of Business Research Paper, Available at SSRN: https://ssrn.com/abstract=2322945 or http://dx.doi.org/10.2139/ssrn.2322945
