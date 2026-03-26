@@ -141,8 +141,8 @@ def compute_trapz_rnm(
             )
 
     for g in prange(n_groups, nogil=True, schedule="dynamic"):
-        start   = mv_indptr[g]
-        end     = mv_indptr[g + 1]
+        start = mv_indptr[g]
+        end = mv_indptr[g + 1]
         seg_len = end - start
 
         rc = trapz_moments(
@@ -153,7 +153,7 @@ def compute_trapz_rnm(
             mv_spots[g],
             mv_rf[g],
             mv_ttm[g],
-            &out_var[g],    # each thread writes to its own slot
+            &out_var[g],
             &out_skew[g],
             &out_kurt[g]
         )
