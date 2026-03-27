@@ -19,6 +19,8 @@ double norm_cdf(double x) {
 
 /* ----
 * Black-Scholes option price function
+* cp = +1 for calls (OPT_CALL), -1 for puts (OPT_PUT)
+* price = cp * (S * N(cp * d1) - K * e^{-rT} * N(cp * d2))
 * ---- */
 double bs_price(
     double S,
@@ -29,18 +31,14 @@ double bs_price(
     int flag
 )
 {
+    double cp = (flag == OPT_CALL) ? 1.0 : -1.0;
     double sqrtT = sqrt(T);
     double d1 = (log (S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
     double d2 = d1 - sigma * sqrtT;
     double disc = exp(-r * T);
 
-    if (flag == OPT_CALL) {
-        return S * norm_cdf(d1) - K * disc * norm_cdf(d2);
-    }
-    else {
-        return K * disc * norm_cdf(-d2) - S * norm_cdf(-d1);
-    }
- }
+    return cp * (S * norm_cdf(cp * d1) - K * disc * norm_cdf(cp * d2));
+}
 
 
 /* ----
