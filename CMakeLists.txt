@@ -124,7 +124,7 @@ function(add_cython_extension module_name pyx_path extra_c_sources)
     )
 
     target_compile_options(${target_name} PRIVATE
-        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O3 -fno-math-errno -fno-trapping-math -fno-finite-math-only>
+        $<$<NOT:$<C_COMPILER_ID:MSVC>>:-O3 -fno-math-errno -fno-trapping-math -fno-finite-math-only -ffp-contract=on>
         $<$<AND:$<C_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/O2 /fp:precise>
         $<$<AND:$<C_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Release>>>:/fp:precise>
     )

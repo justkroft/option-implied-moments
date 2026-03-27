@@ -4,49 +4,23 @@
 
 #include "trapezoid_core.h"
 
-#ifndef TRAPZ_PI
-#define TRAPZ_PI 3.14159265358979323846
+/* 1/sqrt(2) - used by norm_cdf via erfc */
+#ifndef TRAPZ_SQRT1_2
+#define TRAPZ_SQRT1_2 0.70710678118654752440
 #endif
 
 /* ----
-* normal cdf approximation
+* normal cdf approximation: phi(x) = 0.5 * erfc(-x / sqrt(2))
 * ---- */
 double norm_cdf(double x) {
-    static const double p  =  0.2316419;
-    static const double b1 =  0.319381530;
-    static const double b2 = -0.356563782;
-    static const double b3 =  1.781477937;
-    static const double b4 = -1.821255978;
-    static const double b5 =  1.330274429;
-
-    double sign = 1.0;
-    if (x < 0.0) {
-        x = -x;
-        sign = -1.0;
-    }
-
-    double t = 1.0 / (1.0 + p * x);
-    double t2 = t * t;
-    double t3 = t2 * t;
-    double t4 = t3 * t;
-    double t5 = t4 * t;
-
-    // standard normal PDF at x
-    double pdf = (1.0 / sqrt(2.0 * TRAPZ_PI)) * exp(-0.5 * x * x);
-    double poly = b1 * t + b2 * t2 + b3 * t3 + b4 * t4 + b5 * t5;
-    double cdf = 1.0 - pdf * poly;
-
-    // recover sign
-    if (sign < 0.0) {
-        cdf = 1.0 - cdf;
-    }
-
-    return cdf;
+    return 0.5 * erfc(-x * TRAPZ_SQRT1_2);
 }
 
 
 /* ----
 * Black-Scholes option price function
+* cp = +1 for calls (OPT_CALL), -1 for puts (OPT_PUT)
+* price = cp * (S * N(cp * d1) - K * e^{-rT} * N(cp * d2))
 * ---- */
 double bs_price(
     double S,
@@ -57,18 +31,14 @@ double bs_price(
     int flag
 )
 {
+    double cp = (flag == OPT_CALL) ? 1.0 : -1.0;
     double sqrtT = sqrt(T);
     double d1 = (log (S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
     double d2 = d1 - sigma * sqrtT;
     double disc = exp(-r * T);
 
-    if (flag == OPT_CALL) {
-        return S * norm_cdf(d1) - K * disc * norm_cdf(d2);
-    }
-    else {
-        return K * disc * norm_cdf(-d2) - S * norm_cdf(-d1);
-    }
- }
+    return cp * (S * norm_cdf(cp * d1) - K * disc * norm_cdf(cp * d2));
+}
 
 
 /* ----

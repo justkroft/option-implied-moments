@@ -38,11 +38,14 @@ The library is implemented in three layers.
 
 All numerical work is done in pure C:
 
-- **Normal CDF** — approximated using the Abramowitz & Stegun rational
-  polynomial method (§26.2.17).
+- **Normal CDF** — approximated using complementary error function:
+
+$$
+\Phi(x) = 0.5 \times \text{erfc}(\frac{-x}{\sqrt(2)})
+$$
+
 - **Black-Scholes pricing** — OTM option prices are computed from implied
-  volatilities using the standard closed-form formula, with the A&S approximation
-  used for the cumulative normal distribution.
+  volatilities using the standard closed-form formula.
 - **Trapezoidal integration** — calls and puts are sorted by strike, priced, and
   integrated separately using the trapezoidal rule following [[2]](#2).
 
