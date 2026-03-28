@@ -28,12 +28,12 @@ build:
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf $(BUILD_DIR_TEST)
-	rm -f  src/ext/trapezoid_rnm.c
-	rm -f src/ext/omp_utils.c
+	rm -f  src/option_implied_moments/ext/trapezoid_rnm.c
+	rm -f  src/option_implied_moments/ext/omp_utils.c
 	find . -name "*.so"  -delete
 	find . -name "*.pyd" -delete
 	rm -rf _skbuild build dist *.egg-info
-	rm -rf src/*.egg-info
+	rm -rf src/option_implied_moments/*.egg-info
 	rm -rf .pytest_cache
 	rm -rf .venv
 
@@ -88,7 +88,7 @@ help:
 	@echo "  rebuild      - Clean and recompile everything from scratch"
 	@echo "  clean        - Remove all build artifacts (.so, dist, .venv)"
 	@echo "  test-c       - Build and run C unit tests"
-	@echo "  test-python  - Run Python unit tests"
+	@echo "  test-py      - Run Python unit tests"
 	@echo "  test         - Run C and Python unit tests"
 	@echo "  lint         - Run ruff and cython-lint"
 	@echo "  ci           - Full pipeline: rebuild + test-all + lint"
