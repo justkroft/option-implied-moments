@@ -68,16 +68,6 @@ jobs:
       - name: Build Cython extension
         run: make build
 
-      # - name: Debug editable install
-      #   run: |
-      #     uv run python -c "import option_implied_moments; print(option_implied_moments.__file__)"
-      #     uv run python -c "import sys; print([p for p in sys.path])"
-
-      # - name: Debug pyd location
-      #   run: |
-      #     Get-ChildItem -Recurse -Filter "*.pyd" D:\a\option-implied-moments\option-implied-moments\
-      #     Get-ChildItem -Recurse -Filter "*.so" D:\a\option-implied-moments\option-implied-moments\
-
       - name: Build & Run C unit tests
         run: make test-c
 
