@@ -1114,8 +1114,8 @@ static int __Pyx_init_co_variables(void) {
   #endif
 #endif
 
-#define __PYX_HAVE__src__ext__omp_utils
-#define __PYX_HAVE_API__src__ext__omp_utils
+#define __PYX_HAVE__option_implied_moments__ext__omp_utils
+#define __PYX_HAVE_API__option_implied_moments__ext__omp_utils
 /* Early includes */
 #include "omp.h"
 #ifdef _OPENMP
@@ -1334,7 +1334,7 @@ static const char *__pyx_filename;
 /* #### Code section: filename_table ### */
 
 static const char* const __pyx_f[] = {
-  "src/ext/omp_utils.pyx",
+  "option_implied_moments/ext/omp_utils.pyx",
 };
 /* #### Code section: utility_code_proto_before_types ### */
 /* Atomics.proto (used by UnpackUnboundCMethod) */
@@ -2184,19 +2184,19 @@ static int __Pyx_State_RemoveModule(void*);
 #define __PYX_TYPE_MODULE_PREFIX __PYX_ABI_MODULE_NAME "."
 
 
-/* Module declarations from "src.ext.omp_utils" */
+/* Module declarations from "option_implied_moments.ext.omp_utils" */
 /* #### Code section: typeinfo ### */
 /* #### Code section: before_global_var ### */
-#define __Pyx_MODULE_NAME "src.ext.omp_utils"
-extern int __pyx_module_is_main_src__ext__omp_utils;
-int __pyx_module_is_main_src__ext__omp_utils = 0;
+#define __Pyx_MODULE_NAME "option_implied_moments.ext.omp_utils"
+extern int __pyx_module_is_main_option_implied_moments__ext__omp_utils;
+int __pyx_module_is_main_option_implied_moments__ext__omp_utils = 0;
 
-/* Implementation of "src.ext.omp_utils" */
+/* Implementation of "option_implied_moments.ext.omp_utils" */
 /* #### Code section: global_var ### */
 /* #### Code section: string_decls ### */
 /* #### Code section: decls ### */
-static PyObject *__pyx_pf_3src_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_n); /* proto */
-static PyObject *__pyx_pf_3src_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_22option_implied_moments_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_n); /* proto */
+static PyObject *__pyx_pf_22option_implied_moments_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
 /* #### Code section: late_includes ### */
 /* #### Code section: module_state ### */
 /* SmallCodeConfig */
@@ -2263,7 +2263,7 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #endif
 /* #### Code section: constant_name_defines ### */
 #define __pyx_kp_u_ __pyx_string_tab[0]
-#define __pyx_kp_u_src_ext_omp_utils_pyx __pyx_string_tab[1]
+#define __pyx_kp_u_option_implied_moments_ext_omp_u_2 __pyx_string_tab[1]
 #define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[2]
 #define __pyx_n_u_asyncio_coroutines __pyx_string_tab[3]
 #define __pyx_n_u_cline_in_traceback __pyx_string_tab[4]
@@ -2275,12 +2275,12 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #define __pyx_n_u_module __pyx_string_tab[10]
 #define __pyx_n_u_n __pyx_string_tab[11]
 #define __pyx_n_u_name __pyx_string_tab[12]
-#define __pyx_n_u_pop __pyx_string_tab[13]
-#define __pyx_n_u_qualname __pyx_string_tab[14]
-#define __pyx_n_u_set_name __pyx_string_tab[15]
-#define __pyx_n_u_set_num_threads __pyx_string_tab[16]
-#define __pyx_n_u_setdefault __pyx_string_tab[17]
-#define __pyx_n_u_src_ext_omp_utils __pyx_string_tab[18]
+#define __pyx_n_u_option_implied_moments_ext_omp_u __pyx_string_tab[13]
+#define __pyx_n_u_pop __pyx_string_tab[14]
+#define __pyx_n_u_qualname __pyx_string_tab[15]
+#define __pyx_n_u_set_name __pyx_string_tab[16]
+#define __pyx_n_u_set_num_threads __pyx_string_tab[17]
+#define __pyx_n_u_setdefault __pyx_string_tab[18]
 #define __pyx_n_u_test __pyx_string_tab[19]
 #define __pyx_n_u_values __pyx_string_tab[20]
 #define __pyx_kp_b_iso88591_a __pyx_string_tab[21]
@@ -2338,7 +2338,7 @@ return 0;
 #endif
 /* #### Code section: module_code ### */
 
-/* "src/ext/omp_utils.pyx":5
+/* "option_implied_moments/ext/omp_utils.pyx":5
  *     int omp_get_max_threads()
  *
  * def set_num_threads(int n):             # <<<<<<<<<<<<<<
@@ -2347,15 +2347,15 @@ return 0;
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_3ext_9omp_utils_1set_num_threads(PyObject *__pyx_self,
+static PyObject *__pyx_pw_22option_implied_moments_3ext_9omp_utils_1set_num_threads(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_3src_3ext_9omp_utils_1set_num_threads = {"set_num_threads", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_3ext_9omp_utils_1set_num_threads, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_3ext_9omp_utils_1set_num_threads(PyObject *__pyx_self,
+static PyMethodDef __pyx_mdef_22option_implied_moments_3ext_9omp_utils_1set_num_threads = {"set_num_threads", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_22option_implied_moments_3ext_9omp_utils_1set_num_threads, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_22option_implied_moments_3ext_9omp_utils_1set_num_threads(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -2417,11 +2417,11 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
     Py_XDECREF(values[__pyx_temp]);
   }
-  __Pyx_AddTraceback("src.ext.omp_utils.set_num_threads", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("option_implied_moments.ext.omp_utils.set_num_threads", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_3src_3ext_9omp_utils_set_num_threads(__pyx_self, __pyx_v_n);
+  __pyx_r = __pyx_pf_22option_implied_moments_3ext_9omp_utils_set_num_threads(__pyx_self, __pyx_v_n);
 
   /* function exit code */
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
@@ -2431,12 +2431,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_3src_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_n) {
+static PyObject *__pyx_pf_22option_implied_moments_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_n) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_num_threads", 0);
 
-  /* "src/ext/omp_utils.pyx":6
+  /* "option_implied_moments/ext/omp_utils.pyx":6
  *
  * def set_num_threads(int n):
  *     omp_set_num_threads(n)             # <<<<<<<<<<<<<<
@@ -2445,7 +2445,7 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyO
 */
   omp_set_num_threads(__pyx_v_n);
 
-  /* "src/ext/omp_utils.pyx":5
+  /* "option_implied_moments/ext/omp_utils.pyx":5
  *     int omp_get_max_threads()
  *
  * def set_num_threads(int n):             # <<<<<<<<<<<<<<
@@ -2460,7 +2460,7 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyO
   return __pyx_r;
 }
 
-/* "src/ext/omp_utils.pyx":8
+/* "option_implied_moments/ext/omp_utils.pyx":8
  *     omp_set_num_threads(n)
  *
  * def get_max_threads():             # <<<<<<<<<<<<<<
@@ -2468,22 +2468,22 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_set_num_threads(CYTHON_UNUSED PyO
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_3ext_9omp_utils_3get_max_threads(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_3src_3ext_9omp_utils_3get_max_threads = {"get_max_threads", (PyCFunction)__pyx_pw_3src_3ext_9omp_utils_3get_max_threads, METH_NOARGS, 0};
-static PyObject *__pyx_pw_3src_3ext_9omp_utils_3get_max_threads(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_22option_implied_moments_3ext_9omp_utils_3get_max_threads(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_22option_implied_moments_3ext_9omp_utils_3get_max_threads = {"get_max_threads", (PyCFunction)__pyx_pw_22option_implied_moments_3ext_9omp_utils_3get_max_threads, METH_NOARGS, 0};
+static PyObject *__pyx_pw_22option_implied_moments_3ext_9omp_utils_3get_max_threads(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_max_threads (wrapper)", 0);
   __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
-  __pyx_r = __pyx_pf_3src_3ext_9omp_utils_2get_max_threads(__pyx_self);
+  __pyx_r = __pyx_pf_22option_implied_moments_3ext_9omp_utils_2get_max_threads(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_3src_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_22option_implied_moments_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2492,7 +2492,7 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_max_threads", 0);
 
-  /* "src/ext/omp_utils.pyx":9
+  /* "option_implied_moments/ext/omp_utils.pyx":9
  *
  * def get_max_threads():
  *     return omp_get_max_threads()             # <<<<<<<<<<<<<<
@@ -2504,7 +2504,7 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED Py
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "src/ext/omp_utils.pyx":8
+  /* "option_implied_moments/ext/omp_utils.pyx":8
  *     omp_set_num_threads(n)
  *
  * def get_max_threads():             # <<<<<<<<<<<<<<
@@ -2514,7 +2514,7 @@ static PyObject *__pyx_pf_3src_3ext_9omp_utils_2get_max_threads(CYTHON_UNUSED Py
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("src.ext.omp_utils.get_max_threads", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("option_implied_moments.ext.omp_utils.get_max_threads", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2846,13 +2846,13 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
   if (__Pyx_InitConstants(__pyx_mstate) < (0)) __PYX_ERR(0, 1, __pyx_L1_error)
   stringtab_initialized = 1;
   if (__Pyx_InitGlobals() < (0)) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__pyx_module_is_main_src__ext__omp_utils) {
+  if (__pyx_module_is_main_option_implied_moments__ext__omp_utils) {
     if (PyObject_SetAttr(__pyx_m, __pyx_mstate_global->__pyx_n_u_name, __pyx_mstate_global->__pyx_n_u_main) < (0)) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "src.ext.omp_utils")) {
-      if (unlikely((PyDict_SetItemString(modules, "src.ext.omp_utils", __pyx_m) < 0))) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "option_implied_moments.ext.omp_utils")) {
+      if (unlikely((PyDict_SetItemString(modules, "option_implied_moments.ext.omp_utils", __pyx_m) < 0))) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   /*--- Builtin init code ---*/
@@ -2870,14 +2870,14 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
   (void)__Pyx_modinit_function_import_code(__pyx_mstate);
   /*--- Execution code ---*/
 
-  /* "src/ext/omp_utils.pyx":5
+  /* "option_implied_moments/ext/omp_utils.pyx":5
  *     int omp_get_max_threads()
  *
  * def set_num_threads(int n):             # <<<<<<<<<<<<<<
  *     omp_set_num_threads(n)
  *
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_3ext_9omp_utils_1set_num_threads, 0, __pyx_mstate_global->__pyx_n_u_set_num_threads, NULL, __pyx_mstate_global->__pyx_n_u_src_ext_omp_utils, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_22option_implied_moments_3ext_9omp_utils_1set_num_threads, 0, __pyx_mstate_global->__pyx_n_u_set_num_threads, NULL, __pyx_mstate_global->__pyx_n_u_option_implied_moments_ext_omp_u, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -2885,13 +2885,13 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
   if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_set_num_threads, __pyx_t_2) < (0)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/ext/omp_utils.pyx":8
+  /* "option_implied_moments/ext/omp_utils.pyx":8
  *     omp_set_num_threads(n)
  *
  * def get_max_threads():             # <<<<<<<<<<<<<<
  *     return omp_get_max_threads()
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_3ext_9omp_utils_3get_max_threads, 0, __pyx_mstate_global->__pyx_n_u_get_max_threads, NULL, __pyx_mstate_global->__pyx_n_u_src_ext_omp_utils, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[1])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_22option_implied_moments_3ext_9omp_utils_3get_max_threads, 0, __pyx_mstate_global->__pyx_n_u_get_max_threads, NULL, __pyx_mstate_global->__pyx_n_u_option_implied_moments_ext_omp_u, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[1])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -2899,7 +2899,7 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
   if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_get_max_threads, __pyx_t_2) < (0)) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "src/ext/omp_utils.pyx":1
+  /* "option_implied_moments/ext/omp_utils.pyx":1
  * cdef extern from "omp.h" nogil:             # <<<<<<<<<<<<<<
  *     void omp_set_num_threads(int n)
  *     int omp_get_max_threads()
@@ -2916,7 +2916,7 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
   __Pyx_XDECREF(__pyx_t_2);
   if (__pyx_m) {
     if (__pyx_mstate->__pyx_d && stringtab_initialized) {
-      __Pyx_AddTraceback("init src.ext.omp_utils", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init option_implied_moments.ext.omp_utils", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     #if !CYTHON_USE_MODULE_STATE
     Py_CLEAR(__pyx_m);
@@ -2930,7 +2930,7 @@ __Pyx_RefNannySetupContext("PyInit_omp_utils", 0);
     }
     #endif
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init src.ext.omp_utils");
+    PyErr_SetString(PyExc_ImportError, "init option_implied_moments.ext.omp_utils");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2969,25 +2969,25 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 5; } index[] = {{1},{21},{20},{18},{18},{8},{15},{13},{5},{8},{10},{1},{8},{3},{12},{12},{15},{10},{17},{8},{6},{10},{9}};
-    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (230 bytes) */
-const char* const cstring = "BZh91AY&SY\177\345\312\306\000\000\010\377\342d\010\000\201\000\001\200\000\204\001P\000\277\357\377`@\000@@@@0\000\270\241\251\251\243\321\006\232h\000\000\000a\241\223 db\014L\232\032`jz  \203F\200\003O!\251x\3231QX\010\373\306sD\273[\230\244\035Q\204\217\336>\306J\3232\2610\n\210\244\020@\214\341\000\334\375\310?Mb\317\301\274\337\020\354\211\331o\214\3678cn\204J\301\302tl\211\303=\254\331\2250\030\010\212\021\202\357Q\265^\227\027\360\n\205\301\031\227\021\007\270\311\340\254_BJ\251[{\005bC\0132\372j\007\241A\253&X\351\343\206/\014\351,\320\345$\013$\314@7T\331go/\033\301\350\035k+y\350\215\326\372\322\203\370\273\222)\302\204\203\377.V0";
-    PyObject *data = __Pyx_DecompressString(cstring, 230, 2);
+    const struct { const unsigned int length: 6; } index[] = {{1},{40},{20},{18},{18},{8},{15},{13},{5},{8},{10},{1},{8},{36},{3},{12},{12},{15},{10},{8},{6},{10},{9}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (248 bytes) */
+const char* const cstring = "BZh91AY&SY3%a\177\000\000\010\377\342d\010\000\201\000\001\200\000\204\001P\000\277\357\377`@\000@@@@0\000\330lE4i\240\302\000\030FCLA\250G\250\364\215\r\032\000\000\000%L)\211\244\323\010\206\207\250c\002KM\366=\036\244O\373=\020K8\262\014\202p\260D3\313\306U\263\246\2111\344T;3\376\212(\201^\222\230\373w\241\035\370\2343\037\264_4K\254\374\332%\361=\351\272\024\274\353Y\257\265T\220\253\216\327\302\357:\340bL\327\001F:#1\202\r\026\345\330Yb:\244E\207S\313\nTM\031\205\243\022\311\341\021\327\244.\275\213j\327\231\360[X\034\240\270~\243\320AS\244\344\265\256\211\206EJsCJ\007\300Y\242\240\034\025p\370\330\301\260\201\200\013p\244\323I\0024\343\211\344\367\207\342\356H\247\n\022\006d\254/\340";
+    PyObject *data = __Pyx_DecompressString(cstring, 248, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (183 bytes) */
-const char* const cstring = "x\332=\217\275\r\302@\014\205\205D\307\000t\214\020F\240\241F\210\005\236\314\305\201\023\367\023b\037J:F\240d,J\306\301\020\021\027\326\367d?\313o#\235[s\257\353\034[\024\365A\252v\350\201\275\265\375\260\365N\261\263\361\201\033\222!9\237+\227\273l\213\211\305\005\353\360\t\332\221\343#\271\013\320\224\344\200\023+\"\365\320s\307T\013\274`\262y\345(\260\261\031\255b\256K`\300D\242h\320\346\026\270\026\n\243\004\304\216\215\374\243\022\377gM\326\366W\tj!*\373\262\232B\000\312\242\300\215Ba\271\317\336\363\305k\261z\322\227\226\217\353s\366\001v\274c\022";
-    PyObject *data = __Pyx_DecompressString(cstring, 183, 1);
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (197 bytes) */
+const char* const cstring = "x\332mN1N\003A\014T$\272<\200\216'\\\236@C\035E|`d\366\234`\261\336\335\234\275\321]\307\023(\363,\312<\007\207\210T\270\030\315h<\232y\256\315\245\026\210\266,<B\253rq\333\360\354\233\252\r\335%\333\320\226\031\330\005\354\226\027I\216m\330\257\274'[J\222:\244:\325x,l)\007B\n|\242\304o\224>\200}/\t8\260Ci\206\277OL\243A\014\367\2308\253!\354\010\306i\035{f D!\r\362\377\306!F\014\367\215\2556\340\330)\337\"\200E\341\215\377\262\256\177\325!\307\330\336\263\003\316\026x\242\334\331>W\227\207\365\367\372\351LW\366\370u<\257~\000\340\033r\376";
+    PyObject *data = __Pyx_DecompressString(cstring, 197, 1);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (248 bytes) */
-const char* const bytes = "?src/ext/omp_utils.pyx__Pyx_PyDict_NextRefasyncio.coroutinescline_in_traceback__func__get_max_threads_is_coroutineitems__main____module__n__name__pop__qualname____set_name__set_num_threadssetdefaultsrc.ext.omp_utils__test__values\200\001\330\004\013\320\013\036\230a\200\001\330\004\027\220q\230\001";
+    #else /* compression: none (286 bytes) */
+const char* const bytes = "?option_implied_moments/ext/omp_utils.pyx__Pyx_PyDict_NextRefasyncio.coroutinescline_in_traceback__func__get_max_threads_is_coroutineitems__main____module__n__name__option_implied_moments.ext.omp_utilspop__qualname____set_name__set_num_threadssetdefault__test__values\200\001\330\004\013\320\013\036\230a\200\001\330\004\027\220q\230\001";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
@@ -3070,12 +3070,12 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
   {
     const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 5};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_n};
-    __pyx_mstate_global->__pyx_codeobj_tab[0] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_ext_omp_utils_pyx, __pyx_mstate->__pyx_n_u_set_num_threads, __pyx_mstate->__pyx_kp_b_iso88591_q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[0])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[0] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_option_implied_moments_ext_omp_u_2, __pyx_mstate->__pyx_n_u_set_num_threads, __pyx_mstate->__pyx_kp_b_iso88591_q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[0])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {0, 0, 0, 0, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 8};
     PyObject* const varnames[] = {0};
-    __pyx_mstate_global->__pyx_codeobj_tab[1] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_ext_omp_utils_pyx, __pyx_mstate->__pyx_n_u_get_max_threads, __pyx_mstate->__pyx_kp_b_iso88591_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[1])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[1] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_option_implied_moments_ext_omp_u_2, __pyx_mstate->__pyx_n_u_get_max_threads, __pyx_mstate->__pyx_kp_b_iso88591_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[1])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
   return 0;
