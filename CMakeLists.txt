@@ -110,8 +110,10 @@ function(add_cython_extension module_name pyx_path extra_c_sources)
 
     # Output the .so next to the .pyx so Python can import it in-place
     set_target_properties(${target_name} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/${pyx_dir}"
-        OUTPUT_NAME              "${pyx_stem}"
+        LIBRARY_OUTPUT_DIRECTORY         "${CMAKE_SOURCE_DIR}/${pyx_dir}"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/${pyx_dir}"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/${pyx_dir}"
+        OUTPUT_NAME                      "${pyx_stem}"
     )
 
     target_include_directories(${target_name} PRIVATE
@@ -143,8 +145,9 @@ function(add_cython_extension module_name pyx_path extra_c_sources)
     )
 
     # mirror the source tree under the install prefix
+    string(REGEX REPLACE "^src/" "" install_dir "${pyx_dir}")
     install(TARGETS ${target_name}
-        LIBRARY DESTINATION "${pyx_dir}"
+        LIBRARY DESTINATION "${install_dir}"
     )
 
 endfunction()
@@ -157,13 +160,13 @@ endfunction()
 #     "<path/to/extra1.c;path/to/extra2.c>"
 # )
 add_cython_extension(
-    "src.ext.trapezoid_rnm"
-    "src/ext/trapezoid_rnm.pyx"
-    "src/ext/trapezoid_core.c"
+    "option_implied_moments.ext.trapezoid_rnm"
+    "src/option_implied_moments/ext/trapezoid_rnm.pyx"
+    "src/option_implied_moments/ext/trapezoid_core.c"
 )
 add_cython_extension(
-    "src.ext.omp_utils"
-    "src/ext/omp_utils.pyx"
+    "option_implied_moments.ext.omp_utils"
+    "src/option_implied_moments/ext/omp_utils.pyx"
     ""
 )
 

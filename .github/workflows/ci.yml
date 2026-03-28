@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/** ]
   pull_request:
     branches: [ main, develop ]
 
@@ -72,7 +72,7 @@ jobs:
         run: make test-c
 
       - name: Run Python unit tests
-        run: uv run pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+        run: uv run pytest tests/ -v --cov=option_implied_moments --cov-report=xml --cov-report=term
 
   build:
     needs: [lint, test]
