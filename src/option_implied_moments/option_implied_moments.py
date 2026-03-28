@@ -70,7 +70,7 @@ class DataSchema:
     rf_rate: str = "rf_rate"
 
 
-def risk_neutral_moments(
+def compute_moments(
     options_data: pl.DataFrame,
     group_freq: str = "1mo",
     data_schema: DataSchema = DataSchema(),

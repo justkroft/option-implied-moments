@@ -7,7 +7,7 @@ import pytest
 
 from option_implied_moments.option_implied_moments import (
     DataSchema,
-    risk_neutral_moments,
+    compute_moments,
 )
 
 ds = DataSchema()
@@ -58,29 +58,29 @@ def _minimal_options_df(n_stocks: int = 2, n_months: int = 3) -> pl.DataFrame:
 class TestRiskNeutralMomentsValidation:
     def test_rejects_non_dataframe(self):
         with pytest.raises(TypeError, match="polars.DataFrame"):
-            risk_neutral_moments({"data": [1, 2, 3]})
+            compute_moments({"data": [1, 2, 3]})
 
     def test_rejects_invalid_group_freq(self):
         df = _minimal_options_df()
         with pytest.raises(ValueError, match="group_freq"):
-            risk_neutral_moments(df, group_freq="W")
+            compute_moments(df, group_freq="W")
 
     def test_rejects_missing_column(self):
         df = _minimal_options_df().drop(ds.implied_volatility)
         with pytest.raises(KeyError):
-            risk_neutral_moments(df)
+            compute_moments(df)
 
 
 class TestRiskNeutralMomentsSuccess:
     def test_output_shape(self):
         df = _minimal_options_df(n_stocks=2, n_months=3)
-        out = risk_neutral_moments(df, group_freq="1mo")
+        out = compute_moments(df, group_freq="1mo")
         # Expect 2 stocks × 3 months = 6 rows
         assert len(out) == 6
 
     def test_output_columns(self):
         df = _minimal_options_df()
-        out = risk_neutral_moments(df)
+        out = compute_moments(df)
         assert set(out.columns) >= {
             "stock_id",
             "date",
@@ -92,12 +92,12 @@ class TestRiskNeutralMomentsSuccess:
 
     def test_variance_positive(self):
         df = _minimal_options_df()
-        out = risk_neutral_moments(df)
+        out = compute_moments(df)
         assert (out["varQ"].drop_nulls() > 0).all()
 
     def test_vol_is_sqrt_annualised_var(self):
         df = _minimal_options_df()
-        out = risk_neutral_moments(df)
+        out = compute_moments(df)
         expected_vol = (out["varQ"].sqrt() * math.sqrt(12)).alias("expected")
         np.testing.assert_allclose(
             out["volQ"].to_numpy(),
@@ -108,11 +108,11 @@ class TestRiskNeutralMomentsSuccess:
 
     def test_output_is_polars_dataframe(self):
         df = _minimal_options_df()
-        out = risk_neutral_moments(df)
+        out = compute_moments(df)
         assert isinstance(out, pl.DataFrame)
 
     def test_daily_group_freq(self):
         """group_freq='1d' should produce one row per stock per day."""
         df = _minimal_options_df(n_stocks=1, n_months=2)
-        out = risk_neutral_moments(df, group_freq="1d")
+        out = compute_moments(df, group_freq="1d")
         assert len(out) >= 1
