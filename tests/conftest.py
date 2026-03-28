@@ -1,5 +1,5 @@
 import numpy as np
-from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT
+from option_implied_moments.ext.trapezoid_rnm import OPT_CALL, OPT_PUT
 
 
 def _make_indptr(sizes: list[int]) -> np.ndarray:

@@ -5,7 +5,10 @@ import numpy as np
 import polars as pl
 import pytest
 
-from src.risk_neutral_moments import DataSchema, risk_neutral_moments
+from option_implied_moments.risk_neutral_moments import (
+    DataSchema,
+    risk_neutral_moments,
+)
 
 ds = DataSchema()
 
