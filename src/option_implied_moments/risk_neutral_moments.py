@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import polars as pl
-
 from src.ext.trapezoid_rnm import OPT_CALL, OPT_PUT, compute_trapz_rnm
 
 ERROR_MAP = {
