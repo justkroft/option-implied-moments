@@ -157,13 +157,13 @@ endfunction()
 #     "<path/to/extra1.c;path/to/extra2.c>"
 # )
 add_cython_extension(
-    "src.ext.trapezoid_rnm"
-    "src/ext/trapezoid_rnm.pyx"
-    "src/ext/trapezoid_core.c"
+    "option_implied_moments.ext.trapezoid_rnm"
+    "src/option_implied_moments/ext/trapezoid_rnm.pyx"
+    "src/option_implied_moments/ext/trapezoid_core.c"
 )
 add_cython_extension(
-    "src.ext.omp_utils"
-    "src/ext/omp_utils.pyx"
+    "option_implied_moments.ext.omp_utils"
+    "src/option_implied_moments/ext/omp_utils.pyx"
     ""
 )
 

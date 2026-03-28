@@ -26,9 +26,9 @@ function(add_c_test_executable test_file)
 
     # derive path to the source under test
     if(rel_dir)
-        set(src_file "${CMAKE_SOURCE_DIR}/src/${rel_dir}/${bare_stem}.c")
+        set(src_file "${CMAKE_SOURCE_DIR}/src/option_implied_moments/${rel_dir}/${bare_stem}.c")
     else()
-        set(src_file "${CMAKE_SOURCE_DIR}/src/${bare_stem}.c")
+        set(src_file "${CMAKE_SOURCE_DIR}/src/option_implied_moments/${bare_stem}.c")
     endif()
 
     # build executable
