@@ -32,7 +32,7 @@ dev = [
 ]
 
 [tool.scikit-build]
-wheel.packages = ["src/option_implied_moments/"]
+wheel.packages = ["option_implied_moments"]
 
 # Tells scikit-build-core to use the installed Cython rather than fetching one
 [tool.scikit-build.cmake.define]
