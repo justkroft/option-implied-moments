@@ -19,8 +19,6 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
 
       - name: Install CMake
         uses: jwlawson/actions-setup-cmake@v2
@@ -36,6 +34,7 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_BEFORE_BUILD_MACOS: "brew install llvm libomp"
           CIBW_BUILD_FRONTEND: "build[uv]"
+          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=15.0
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
