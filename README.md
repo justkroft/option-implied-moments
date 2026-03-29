@@ -75,38 +75,30 @@ Bakshi, G., Kapadia, N., & Madan, D. (2003). Stock return characteristics, skew 
 Bali, Turan G. and Hu, Jianfeng and Murray, Scott, Option Implied Volatility, Skewness, and Kurtosis and the Cross-Section of Expected Stock Returns (January 1, 2019). Georgetown McDonough School of Business Research Paper, Available at SSRN: https://ssrn.com/abstract=2322945 or http://dx.doi.org/10.2139/ssrn.2322945
 
 # Getting Started
-*Prerequisites — you need CMake and a C compiler installed on your machine. The build process uses CMake to compile the C extension and link against system OpenMP. On macOS with Apple Clang, ensure you have Homebrew's LLVM installed.*
 
-Clone the repository
+## Installation
+```bash
+pip install option-implied-moments
+```
 
+Wheels are available for Python 3.11–3.13 on Linux, macOS, and Windows. No C compiler or CMake required.
+
+## Development Installation
+
+For contributing or modifying the C/Cython extensions, you need CMake and a C compiler. On macOS, also install Homebrew's LLVM for OpenMP support:
+```bash
+brew install llvm libomp
+```
+
+Clone the repository and build:
 ```bash
 git clone https://github.com/justkroft/option-implied-moments.git
 cd option-implied-moments
-```
-
-and setup your virtual environment using `uv`.
-
-```bash
-uv venv  # create environment
-uv sync  # sync all dependencies from toml file
-```
-
-Then, activate the environment:
-
-```bash
-source .venv/bin/activate  # on Mac
-./venv/Scripts/activate    # on Windows
-```
-
-If `make` is available on your platform, you can build the extension as follows:
-
-```bash
 make install
 make build
 ```
 
-Else, you can make a local, editable install as follows:
-
+Without `make`, set up your `uv` environment and make a local install:
 ```bash
 uv pip install scikit-build-core numpy
 uv pip install --no-build-isolation -e . -Ccmake.build-type=Release
@@ -117,7 +109,7 @@ uv pip install --no-build-isolation -e . -Ccmake.build-type=Release
 The library uses OpenMP for parallel computation across groups. You can control the number of threads:
 
 ```python
-from src.ext.omp_utils import get_max_threads, set_num_threads
+from option_implied_moments.ext.omp_utils import get_max_threads, set_num_threads
 
 max_threads = get_max_threads()
 print(f"Available threads: {max_threads}")
