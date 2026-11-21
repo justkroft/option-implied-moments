@@ -6,22 +6,18 @@ else
     TEST_BUILD_TYPE := Debug
 endif
 
-PYTHON_EXECUTABLE := $(shell uv run python -c "import sys; print(sys.executable)")
-
 .PHONY: install
 install:
 	@echo "Creating virtual environment and installing dependencies using uv..."
 	uv venv
 	uv lock
-	uv sync --all-groups
+	uv sync --locked --all-groups --all-extras
 	uv run pre-commit install
 
 .PHONY: build
 build:
-	@echo "Installing build dependencies..."
-	uv pip install scikit-build-core numpy
 	@echo "Compiling C-extensions..."
-	uv pip install --no-build-isolation -e . -Ccmake.build-type=Release
+	uv pip install -e . -Ccmake.build-type=Release
 	@echo "Build complete."
 
 .PHONY: clean
@@ -43,18 +39,18 @@ rebuild: clean install build
 .PHONY: build-tests
 build-tests:
 	@echo "Configuring test build..."
-	uv run cmake -S . -B $(BUILD_DIR_TEST) \
+	uv run --locked cmake -S . -B $(BUILD_DIR_TEST) \
 		-DCMAKE_BUILD_TYPE=$(TEST_BUILD_TYPE) \
-		-DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON \
-		-DPython_EXECUTABLE=$(PYTHON_EXECUTABLE)
+		-DTESTING=ON \
+		-DBUILD_EXTENSIONS=OFF
 	@echo "Compiling C unit tests..."
-	uv run cmake --build $(BUILD_DIR_TEST) --config $(TEST_BUILD_TYPE)
+	uv run --locked cmake --build $(BUILD_DIR_TEST) --config $(TEST_BUILD_TYPE)
 
 .PHONY: test-c
 test-c: build-tests
 	@echo "Running C unit tests..."
 	rm -f $(BUILD_DIR_TEST)/Testing/Temporary/LastTestsFailed.cmake
-	ctest --output-on-failure \
+	uv run ctest --output-on-failure \
 		--test-dir $(BUILD_DIR_TEST) \
 		-C $(TEST_BUILD_TYPE) \
 		-R "^ext/"

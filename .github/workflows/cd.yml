@@ -34,6 +34,8 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_BEFORE_BUILD_MACOS: "brew install llvm libomp"
           CIBW_BUILD_FRONTEND: "build[uv]"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "python {project}/.github/scripts/validate_wheel.py --openmp auto"
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=15.0
 
       - name: Upload wheels
